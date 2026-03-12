@@ -1,0 +1,44 @@
+schema: spec-driven
+
+context: |
+  ## Project Overview
+  中文天气助手聊天机器人，支持工具调用与流式响应。
+  基于 Next.js App Router 和 LangChain/LangGraph agent 框架构建。
+
+  ## Tech Stack
+  - Framework: Next.js 16 (App Router), React 19, TypeScript 5
+  - AI/LLM: LangChain 1.x, LangGraph, Vercel AI SDK (@ai-sdk/react, @ai-sdk/langchain, @ai-sdk/alibaba)
+  - Model: Alibaba QwQ，通过 OpenAI 兼容 API 接入（环境变量：ALIBABA_API_KEY, BASE_URL）
+  - Styling: Tailwind CSS 4
+  - Validation: Zod 4
+  - HTTP Client: Axios
+  - Package Manager: pnpm
+
+  ## Architecture
+  - app/page.tsx              — 主聊天 UI（Client Component，"use client"）
+  - app/hooks/useAgentChat.ts — 聊天状态与流式响应管理 hook
+  - app/api/chat/route.ts     — API 路由：消息格式转换 + 调用 LangChain agent
+  - app/_langchain/agent.ts   — LangChain agent：工具定义、中间件、MemorySaver
+
+  ## Domain & Features
+  - 工具调用：get_weather_for_location（查询城市天气）、get_user_location（从上下文获取用户位置）
+  - 工具审批流程：用户可在工具执行前批准或拒绝
+  - 基于 LangGraph MemorySaver 的多轮对话记忆（thread_id 隔离）
+  - 流式响应：Vercel AI SDK 实现实时状态更新
+  - 系统提示：中文，天气助手人设
+
+  ## Conventions
+  - TypeScript strict mode
+  - 客户端组件使用 "use client" 指令
+  - 模块化分层：agent 逻辑 / API 路由 / hooks / UI 组件
+  - Conventional Commits 提交规范
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
