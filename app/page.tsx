@@ -22,22 +22,28 @@ export default function Chat() {
                     key={`${message.id}-${i}`}
                     className="text-sm text-gray-500"
                   >
-                    {part.data?.message}
+                    {(part.data as { message?: string })?.message}
                   </div>
                 )
               );
             }
             if (part.type === "tool-getWeatherInformation") {
+              type WeatherPart = typeof part & {
+                input: { city: string };
+                approval: { id: string };
+                output: string;
+              };
+              const wp = part as WeatherPart;
               switch (part.state) {
                 case "approval-requested":
                   return (
                     <div key={part.toolCallId}>
-                      Get weather information for {part.input.city}?
+                      Get weather information for {wp.input.city}?
                       <div>
                         <button
                           onClick={() =>
                             addToolApprovalResponse({
-                              id: part.approval.id,
+                              id: wp.approval.id,
                               approved: true,
                             })
                           }
@@ -47,7 +53,7 @@ export default function Chat() {
                         <button
                           onClick={() =>
                             addToolApprovalResponse({
-                              id: part.approval.id,
+                              id: wp.approval.id,
                               approved: false,
                             })
                           }
@@ -60,13 +66,13 @@ export default function Chat() {
                 case "output-available":
                   return (
                     <div key={part.toolCallId}>
-                      Weather in {part.input.city}: {part.output}
+                      Weather in {wp.input.city}: {wp.output}
                     </div>
                   );
                 case "output-denied":
                   return (
                     <div key={part.toolCallId}>
-                      Weather request for {part.input.city} was denied.
+                      Weather request for {wp.input.city} was denied.
                     </div>
                   );
               }

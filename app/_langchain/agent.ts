@@ -11,6 +11,8 @@ import { ChatOpenAI } from "@langchain/openai";
 
 // const store = new InMemoryStore();
 
+type AgentRuntime = ToolRuntime<unknown, { user_id: string }>;
+
 // Define system prompt
 const systemPrompt = `你是一个天气预报员，也略通一些常识.
 
@@ -39,8 +41,6 @@ const getWeather = tool(({ city }, config: AgentRuntime) => {
   }),
 });
 
-type AgentRuntime = ToolRuntime<unknown, { user_id: string }>;
-
 const getUserLocation = tool(
   (_, config: AgentRuntime) => {
     const { user_id } = config.context;
@@ -52,15 +52,6 @@ const getUserLocation = tool(
     schema: z.object({}),
   },
 );
-
-const model = new ChatOpenAI({
-  model: process.env.MODEL ?? "",
-  apiKey: process.env.ALIBABA_API_KEY ?? "",
-  temperature: 0,
-  configuration: {
-    baseURL: process.env.BASE_URL ?? "",
-  },
-});
 const glmModel = new ChatOpenAI({
   model: process.env.GLM_MODEL ?? "",
   apiKey: process.env.GLM_API_KEY ?? "",
@@ -102,4 +93,4 @@ const langchainAgent = createAgent({
   contextSchema,
 });
 
-export { langchainAgent };
+export { langchainAgent, getWeather, getUserLocation, handleToolErrors, contextSchema };

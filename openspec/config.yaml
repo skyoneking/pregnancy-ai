@@ -33,12 +33,35 @@ context: |
   - 模块化分层：agent 逻辑 / API 路由 / hooks / UI 组件
   - Conventional Commits 提交规范
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  ## Testing
+  - 测试框架：Vitest（单元/集成/组件）+ Playwright（E2E，Chrome only）
+  - 目录结构：
+    - `__tests__/unit/`：工具函数、中间件、Zod schema 单元测试
+    - `__tests__/unit/api/`：Next.js API 路由集成测试
+    - `__tests__/ui/`：React 组件渲染与交互测试（React Testing Library）
+    - `e2e/`：Playwright 端到端测试（浏览器级别）
+  - 命名规范：`*.test.ts` / `*.test.tsx`（Vitest）、`*.spec.ts`（Playwright）
+  - Mock 策略：外部依赖通过 `vi.mock()` 隔离；E2E 测试使用 `page.route()` 拦截 `/api/chat`，返回 Vercel AI SDK SSE 格式 mock 响应，禁止真实 LLM API 调用
+  - 覆盖率目标：核心业务代码（`app/**`）行覆盖率 ≥ 80%（`pnpm test:coverage`）
+  - Playwright MCP 验证工作流：E2E 测试编写完成后，必须通过 Playwright MCP 工具（browser_navigate、browser_snapshot、browser_click 等）直接验证功能，截图确认每个关键步骤
+
+rules:
+  testing:
+    - 测试文件放置在 `__tests__/`（Vitest）或 `e2e/`（Playwright）目录
+    - 命名规范：`*.test.ts` / `*.test.tsx`（单元/组件）、`*.spec.ts`（E2E）
+    - 每个测试文件必须包含 happy path 和边界用例
+    - 外部依赖（LLM API、Next.js 框架）通过 `vi.mock()` 隔离
+  coverage:
+    - agent 工具函数：覆盖所有条件分支（user_id 判断、writer 有无、异常路径）
+    - API 路由：验证请求体解析、参数传递、stream 调用参数
+    - UI 组件：覆盖所有渲染分支（user/assistant 角色、三种工具状态、data-status 条件渲染、表单交互）
+    - 整体目标：`app/**` 行覆盖率 ≥ 80%
+  layers:
+    - unit/agent/：工具函数逻辑（getWeather、getUserLocation）、中间件（handleToolErrors）、Zod schema
+    - unit/api/：Next.js 路由函数，mock 所有外部依赖
+    - ui/：React Client Component，mock useChat hook
+    - e2e/（Playwright）：完整用户交互流程，使用 page.route() 拦截后端，Chrome only
+  e2e-validation:
+    - E2E 测试代码完成后，必须通过 Playwright MCP 工具直接验证功能，不能仅依赖 `pnpm test:e2e` 命令行
+    - 验证步骤：browser_navigate 导航页面 → browser_snapshot 检查元素存在 → browser_click 触发交互 → browser_take_screenshot 截图确认视觉结果
+    - 每个关键 UI 状态（输入框、User消息、AI消息、Approve/Deny按钮）均需截图验证

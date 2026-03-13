@@ -9,7 +9,26 @@
       "mcp__fetch__fetch",
       "Bash(openspec new change \"update-config-context\")",
       "Bash(openspec status --change \"update-config-context\" --json)",
-      "Bash(openspec instructions proposal --change \"update-config-context\" --json)"
+      "Bash(openspec instructions proposal --change \"update-config-context\" --json)",
+      "Bash(openspec new:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec instructions:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:coverage)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_type",
+      "Bash(pnpm test:e2e)",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_run_code",
+      "Bash(for spec:*)",
+      "Bash(do)",
+      "Bash(echo \"=== $spec ===\")",
+      "Read(//f/AI/my-ai-app/openspec/changes/add-vitest-tests/specs/$spec/**)",
+      "Bash(done)"
     ]
   }
 }
