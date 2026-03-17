@@ -1,48 +1,42 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getWeather, getUserLocation, handleToolErrors, contextSchema } from '@/app/_langchain/agent';
+import {
+  calculatePregnancyInfo,
+  getWeeklyDevelopment,
+  checkFoodSafety,
+  getPrenatalSchedule,
+  assessSymptom,
+  handleToolErrors,
+  contextSchema,
+} from '@/app/_langchain/agent';
 import { ToolMessage } from 'langchain';
 
 // ─────────────────────────────────────────────
-// getUserLocation
+// contextSchema
 // ─────────────────────────────────────────────
-describe('getUserLocation', () => {
-  it('user_id=u1 时返回上海', async () => {
-    const result = await getUserLocation.invoke({}, { context: { user_id: 'u1' } } as any);
-    expect(result).toBe('上海');
+describe('contextSchema', () => {
+  it('{role:"mom", due_date:"2025-12-01"} 解析成功', () => {
+    const result = contextSchema.parse({ role: 'mom', due_date: '2025-12-01' });
+    expect(result).toEqual({ role: 'mom', due_date: '2025-12-01' });
   });
 
-  it('user_id=u2 时返回北京', async () => {
-    const result = await getUserLocation.invoke({}, { context: { user_id: 'u2' } } as any);
-    expect(result).toBe('北京');
+  it('{role:"dad", due_date:"2025-12-01"} 解析成功', () => {
+    const result = contextSchema.parse({ role: 'dad', due_date: '2025-12-01' });
+    expect(result.role).toBe('dad');
   });
 
-  it('user_id="" 时返回北京', async () => {
-    const result = await getUserLocation.invoke({}, { context: { user_id: '' } } as any);
-    expect(result).toBe('北京');
-  });
-});
-
-// ─────────────────────────────────────────────
-// getWeather
-// ─────────────────────────────────────────────
-describe('getWeather', () => {
-  it('city="上海" 时返回正确天气字符串', async () => {
-    const result = await getWeather.invoke({ city: '上海' }, {} as any);
-    expect(result).toBe('上海天气一向不错!');
+  it('role 非法值解析失败', () => {
+    const result = contextSchema.safeParse({ role: 'unknown', due_date: '2025-12-01' });
+    expect(result.success).toBe(false);
   });
 
-  it('writer 存在时被调用，含 type:status 和 message:正在查询...', async () => {
-    const writer = vi.fn();
-    await getWeather.invoke({ city: '上海' }, { writer } as any);
-    expect(writer).toHaveBeenCalledOnce();
-    const arg = writer.mock.calls[0][0];
-    expect(arg).toMatchObject({ type: 'status', message: '正在查询...' });
+  it('缺少 due_date 解析失败', () => {
+    const result = contextSchema.safeParse({ role: 'mom' });
+    expect(result.success).toBe(false);
   });
 
-  it('writer 为 undefined 时不抛出错误', async () => {
-    await expect(
-      getWeather.invoke({ city: '上海' }, { writer: undefined } as any),
-    ).resolves.toBeDefined();
+  it('{} 解析失败', () => {
+    const result = contextSchema.safeParse({});
+    expect(result.success).toBe(false);
   });
 });
 
@@ -67,21 +61,148 @@ describe('handleToolErrors', () => {
 });
 
 // ─────────────────────────────────────────────
-// contextSchema
+// calculatePregnancyInfo
 // ─────────────────────────────────────────────
-describe('contextSchema', () => {
-  it('{user_id:"u1"} 解析成功', () => {
-    const parsed = contextSchema.parse({ user_id: 'u1' });
-    expect(parsed).toEqual({ user_id: 'u1' });
+describe('calculatePregnancyInfo', () => {
+  it('预产期为40周后，返回孕1周或合理周数', async () => {
+    const farFuture = new Date();
+    farFuture.setDate(farFuture.getDate() + 280);
+    const result = await calculatePregnancyInfo.invoke({ due_date: farFuture.toISOString().split('T')[0] });
+    const parsed = JSON.parse(result);
+    expect(parsed.currentWeek).toBeGreaterThanOrEqual(1);
+    expect(parsed.currentWeek).toBeLessThanOrEqual(42);
   });
 
-  it('{user_id:123} 解析失败', () => {
-    const result = contextSchema.safeParse({ user_id: 123 });
-    expect(result.success).toBe(false);
+  it('孕早期（≤13周）阶段标签正确', async () => {
+    // 孕8周 = 距预产期约32周 = 224天后
+    const due = new Date();
+    due.setDate(due.getDate() + 224);
+    const result = await calculatePregnancyInfo.invoke({ due_date: due.toISOString().split('T')[0] });
+    const parsed = JSON.parse(result);
+    expect(parsed.stage).toBe('孕早期');
   });
 
-  it('{} 解析失败', () => {
-    const result = contextSchema.safeParse({});
-    expect(result.success).toBe(false);
+  it('孕中期（14-27周）阶段标签正确', async () => {
+    // 孕20周 = 距预产期20周 = 140天
+    const due = new Date();
+    due.setDate(due.getDate() + 140);
+    const result = await calculatePregnancyInfo.invoke({ due_date: due.toISOString().split('T')[0] });
+    const parsed = JSON.parse(result);
+    expect(parsed.stage).toBe('孕中期');
+  });
+
+  it('孕晚期（≥28周）阶段标签正确', async () => {
+    // 孕30周 = 距预产期10周 = 70天
+    const due = new Date();
+    due.setDate(due.getDate() + 70);
+    const result = await calculatePregnancyInfo.invoke({ due_date: due.toISOString().split('T')[0] });
+    const parsed = JSON.parse(result);
+    expect(parsed.stage).toBe('孕晚期');
+  });
+
+  it('返回 daysRemaining 字段且 ≥ 0', async () => {
+    const due = new Date();
+    due.setDate(due.getDate() + 100);
+    const result = await calculatePregnancyInfo.invoke({ due_date: due.toISOString().split('T')[0] });
+    const parsed = JSON.parse(result);
+    expect(parsed.daysRemaining).toBeGreaterThanOrEqual(0);
+  });
+});
+
+// ─────────────────────────────────────────────
+// getWeeklyDevelopment
+// ─────────────────────────────────────────────
+describe('getWeeklyDevelopment', () => {
+  it('准妈妈和准爸爸返回不同内容', async () => {
+    const momResult = await getWeeklyDevelopment.invoke({ week: 20, role: 'mom' });
+    const dadResult = await getWeeklyDevelopment.invoke({ week: 20, role: 'dad' });
+    expect(momResult).not.toBe(dadResult);
+  });
+
+  it('返回内容包含免责声明', async () => {
+    const result = await getWeeklyDevelopment.invoke({ week: 20, role: 'mom' });
+    expect(result).toContain('以医生检查结果为准');
+  });
+
+  it('未收录孕周自动匹配最近的周数', async () => {
+    const result = await getWeeklyDevelopment.invoke({ week: 15, role: 'mom' });
+    expect(result).toBeTruthy();
+  });
+});
+
+// ─────────────────────────────────────────────
+// checkFoodSafety
+// ─────────────────────────────────────────────
+describe('checkFoodSafety', () => {
+  it('苹果 返回安全等级', async () => {
+    const result = JSON.parse(await checkFoodSafety.invoke({ food_name: '苹果' }));
+    expect(result.level).toBe('安全');
+  });
+
+  it('酒精 返回禁止等级', async () => {
+    const result = JSON.parse(await checkFoodSafety.invoke({ food_name: '酒精' }));
+    expect(result.level).toBe('禁止');
+  });
+
+  it('未知食物返回"未知"等级', async () => {
+    const result = JSON.parse(await checkFoodSafety.invoke({ food_name: '外星果' }));
+    expect(result.level).toBe('未知');
+  });
+
+  it('所有结果包含 disclaimer 字段', async () => {
+    const result = JSON.parse(await checkFoodSafety.invoke({ food_name: '苹果' }));
+    expect(result.disclaimer).toBeTruthy();
+  });
+});
+
+// ─────────────────────────────────────────────
+// getPrenatalSchedule
+// ─────────────────────────────────────────────
+describe('getPrenatalSchedule', () => {
+  it('孕8周时建档检查在 upcoming 中', async () => {
+    const result = JSON.parse(await getPrenatalSchedule.invoke({ current_week: 8 }));
+    const allItems = [...result.completed, ...result.upcoming];
+    expect(allItems.some((i: { name: string }) => i.name === '建档检查')).toBe(true);
+  });
+
+  it('孕30周时 NT 检查在 completed 中', async () => {
+    const result = JSON.parse(await getPrenatalSchedule.invoke({ current_week: 30 }));
+    expect(result.completed.some((i: { name: string }) => i.name === 'NT检查')).toBe(true);
+  });
+
+  it('返回 disclaimer 字段', async () => {
+    const result = JSON.parse(await getPrenatalSchedule.invoke({ current_week: 20 }));
+    expect(result.disclaimer).toBeTruthy();
+  });
+});
+
+// ─────────────────────────────────────────────
+// assessSymptom
+// ─────────────────────────────────────────────
+describe('assessSymptom', () => {
+  it('大量出血 → 🔴急诊', async () => {
+    const result = JSON.parse(await assessSymptom.invoke({ symptom: '大量出血，肚子很痛', current_week: 20 }));
+    expect(result.level).toBe('🔴急诊');
+  });
+
+  it('出血 → 🟠就医', async () => {
+    const result = JSON.parse(await assessSymptom.invoke({ symptom: '有一点出血', current_week: 10 }));
+    expect(result.level).toBe('🟠就医');
+  });
+
+  it('孕吐 → 🟢正常', async () => {
+    const result = JSON.parse(await assessSymptom.invoke({ symptom: '有孕吐和恶心', current_week: 8 }));
+    expect(result.level).toBe('🟢正常');
+  });
+
+  it('未知症状 → 至少🟡观察（宁严勿松）', async () => {
+    const result = JSON.parse(await assessSymptom.invoke({ symptom: '脚有点麻', current_week: 20 }));
+    expect(['🟡观察', '🟠就医', '🔴急诊']).toContain(result.level);
+  });
+
+  it('所有结果包含 disclaimer 字段', async () => {
+    const result = JSON.parse(await assessSymptom.invoke({ symptom: '孕吐', current_week: 8 }));
+    expect(result.disclaimer).toBeTruthy();
+    expect(result.disclaimer).toContain('不构成医疗诊断');
   });
 });

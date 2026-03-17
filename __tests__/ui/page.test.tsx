@@ -2,218 +2,196 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-// Mock @ai-sdk/react's useChat
 vi.mock('@ai-sdk/react', () => ({
   useChat: vi.fn(),
 }));
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
+vi.mock('ai', () => ({
+  DefaultChatTransport: class MockTransport {
+    constructor(_options?: unknown) {}
+  },
+}));
+
+vi.mock('@/app/lib/profile', () => ({
+  getProfile: vi.fn(),
+}));
+
 import Chat from '@/app/page';
 import { useChat } from '@ai-sdk/react';
+import { getProfile } from '@/app/lib/profile';
 
 const mockUseChat = useChat as ReturnType<typeof vi.fn>;
+const mockGetProfile = getProfile as ReturnType<typeof vi.fn>;
+
+const validProfile = {
+  role: 'mom' as const,
+  dueDate: '2025-12-01',
+  createdAt: '2025-03-17T00:00:00.000Z',
+};
 
 function setupUseChat(overrides: Partial<ReturnType<typeof useChat>> = {}) {
   mockUseChat.mockReturnValue({
     messages: [],
     sendMessage: vi.fn(),
-    addToolApprovalResponse: vi.fn(),
     ...overrides,
   } as any);
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockGetProfile.mockReturnValue(validProfile);
 });
 
 // ─────────────────────────────────────────────
-// 6.2 空消息列表
+// localStorage 检测 & 跳转
 // ─────────────────────────────────────────────
-describe('6.2 空消息列表', () => {
-  it('渲染 placeholder 为 "Say something..." 的 input', () => {
+describe('localStorage 检测', () => {
+  it('有档案时正常渲染聊天页', () => {
     setupUseChat({ messages: [] });
     render(<Chat />);
-    expect(screen.getByPlaceholderText('Say something...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('和我聊聊孕期的问题吧...')).toBeInTheDocument();
+  });
+
+  it('无档案时不渲染聊天 UI', () => {
+    mockGetProfile.mockReturnValue(null);
+    setupUseChat({ messages: [] });
+    render(<Chat />);
+    expect(screen.queryByPlaceholderText('和我聊聊孕期的问题吧...')).not.toBeInTheDocument();
   });
 });
 
 // ─────────────────────────────────────────────
-// 6.3 / 6.4 消息角色标签
+// 孕周信息标签
 // ─────────────────────────────────────────────
-describe('消息角色标签', () => {
-  it('6.3: role=user 的消息显示 "User: " 前缀', () => {
-    setupUseChat({
-      messages: [
-        { id: '1', role: 'user', parts: [{ type: 'text', text: '你好' }] },
-      ] as any,
-    });
+describe('孕周信息标签', () => {
+  it('准妈妈档案显示"准妈妈 · 孕 X 周"标签', () => {
+    setupUseChat({ messages: [] });
     render(<Chat />);
-    // "User: " is a bare text node inside the container div; check body text content
-    expect(document.body.textContent).toContain('User: ');
+    expect(screen.getByText(/准妈妈 · 孕/)).toBeInTheDocument();
+    expect(screen.getByText(/周/)).toBeInTheDocument();
   });
 
-  it('6.4: role=assistant 的消息显示 "AI: " 前缀', () => {
-    setupUseChat({
-      messages: [
-        { id: '2', role: 'assistant', parts: [{ type: 'text', text: '你好！' }] },
-      ] as any,
-    });
+  it('准爸爸档案显示"准爸爸"标签', () => {
+    mockGetProfile.mockReturnValue({ ...validProfile, role: 'dad' });
+    setupUseChat({ messages: [] });
     render(<Chat />);
-    expect(document.body.textContent).toContain('AI: ');
+    expect(screen.getByText(/准爸爸 · 孕/)).toBeInTheDocument();
   });
 });
 
 // ─────────────────────────────────────────────
-// 6.5–6.7 工具审批状态
+// 中文界面
 // ─────────────────────────────────────────────
-describe('tool-getWeatherInformation: approval-requested', () => {
-  const addToolApprovalResponse = vi.fn();
-  const toolPart = {
-    type: 'tool-getWeatherInformation',
-    state: 'approval-requested',
-    toolCallId: 'tc-1',
-    input: { city: '上海' },
-    approval: { id: 'approval-1' },
-  };
+describe('中文界面', () => {
+  it('输入框 placeholder 为中文', () => {
+    setupUseChat({ messages: [] });
+    render(<Chat />);
+    expect(screen.getByPlaceholderText('和我聊聊孕期的问题吧...')).toBeInTheDocument();
+  });
 
-  beforeEach(() => {
+  it('用户消息显示"用户："前缀', () => {
     setupUseChat({
       messages: [
-        { id: 'm1', role: 'assistant', parts: [toolPart] },
+        { id: '1', role: 'user', parts: [{ type: 'text', text: '请问孕吐正常吗' }] },
       ] as any,
-      addToolApprovalResponse,
     });
+    render(<Chat />);
+    expect(document.body.textContent).toContain('用户：');
   });
 
-  it('6.5: 显示城市名和 Approve/Deny 按钮', () => {
+  it('AI 消息显示"AI："前缀', () => {
+    setupUseChat({
+      messages: [
+        { id: '2', role: 'assistant', parts: [{ type: 'text', text: '孕吐很正常' }] },
+      ] as any,
+    });
     render(<Chat />);
-    expect(screen.getByText(/上海/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Approve' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Deny' })).toBeInTheDocument();
-  });
-
-  it('6.6: 点击 Approve 调用 addToolApprovalResponse({ approved: true })', async () => {
-    render(<Chat />);
-    await userEvent.click(screen.getByRole('button', { name: 'Approve' }));
-    expect(addToolApprovalResponse).toHaveBeenCalledWith(
-      expect.objectContaining({ approved: true }),
-    );
-  });
-
-  it('6.7: 点击 Deny 调用 addToolApprovalResponse({ approved: false })', async () => {
-    render(<Chat />);
-    await userEvent.click(screen.getByRole('button', { name: 'Deny' }));
-    expect(addToolApprovalResponse).toHaveBeenCalledWith(
-      expect.objectContaining({ approved: false }),
-    );
+    expect(document.body.textContent).toContain('AI：');
   });
 });
 
 // ─────────────────────────────────────────────
-// 6.8 output-available
+// 天气 UI 已移除
 // ─────────────────────────────────────────────
-describe('tool-getWeatherInformation: output-available', () => {
-  it('6.8: 显示天气输出文本', () => {
+describe('天气审批 UI 已移除', () => {
+  it('不渲染 Approve/Deny 按钮', () => {
     setupUseChat({
       messages: [
         {
-          id: 'm2',
+          id: 'm1',
           role: 'assistant',
           parts: [
             {
               type: 'tool-getWeatherInformation',
-              state: 'output-available',
-              toolCallId: 'tc-2',
+              state: 'approval-requested',
+              toolCallId: 'tc-1',
               input: { city: '上海' },
-              output: '上海天气一向不错!',
+              approval: { id: 'approval-1' },
             },
           ],
         },
       ] as any,
     });
     render(<Chat />);
-    expect(screen.getByText(/上海天气一向不错!/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Deny' })).not.toBeInTheDocument();
   });
 });
 
 // ─────────────────────────────────────────────
-// 6.9 output-denied
-// ─────────────────────────────────────────────
-describe('tool-getWeatherInformation: output-denied', () => {
-  it('6.9: 显示拒绝相关文本（含城市名和 denied）', () => {
-    setupUseChat({
-      messages: [
-        {
-          id: 'm3',
-          role: 'assistant',
-          parts: [
-            {
-              type: 'tool-getWeatherInformation',
-              state: 'output-denied',
-              toolCallId: 'tc-3',
-              input: { city: '上海' },
-            },
-          ],
-        },
-      ] as any,
-    });
-    render(<Chat />);
-    expect(screen.getByText(/上海/)).toBeInTheDocument();
-    expect(screen.getByText(/denied/i)).toBeInTheDocument();
-  });
-});
-
-// ─────────────────────────────────────────────
-// 6.10 / 6.11 data-status 条件渲染
+// data-status 条件渲染
 // ─────────────────────────────────────────────
 describe('data-status 条件渲染', () => {
-  it('6.10: 最后 part 非 text 时显示 data-status 消息', () => {
+  it('最后 part 非 text 时显示 data-status 消息', () => {
     setupUseChat({
       messages: [
         {
           id: 'm4',
           role: 'assistant',
-          parts: [
-            { type: 'data-status', data: { message: '正在查询...' } },
-          ],
+          parts: [{ type: 'data-status', data: { message: '正在处理...' } }],
         },
       ] as any,
     });
     render(<Chat />);
-    expect(screen.getByText('正在查询...')).toBeInTheDocument();
+    expect(screen.getByText('正在处理...')).toBeInTheDocument();
   });
 
-  it('6.11: 最后 part 为 text 时不显示 data-status 消息', () => {
+  it('最后 part 为 text 时不显示 data-status 消息', () => {
     setupUseChat({
       messages: [
         {
           id: 'm5',
           role: 'assistant',
           parts: [
-            { type: 'data-status', data: { message: '正在查询...' } },
-            { type: 'text', text: '上海天气很好！' },
+            { type: 'data-status', data: { message: '正在处理...' } },
+            { type: 'text', text: '孕吐是正常现象' },
           ],
         },
       ] as any,
     });
     render(<Chat />);
-    expect(screen.queryByText('正在查询...')).not.toBeInTheDocument();
+    expect(screen.queryByText('正在处理...')).not.toBeInTheDocument();
   });
 });
 
 // ─────────────────────────────────────────────
-// 6.12 表单提交
+// 表单提交
 // ─────────────────────────────────────────────
-describe('6.12 表单提交', () => {
+describe('表单提交', () => {
   it('提交后调用 sendMessage 并清空 input', async () => {
     const sendMessage = vi.fn();
     setupUseChat({ messages: [], sendMessage });
     render(<Chat />);
 
-    const input = screen.getByPlaceholderText('Say something...');
-    await userEvent.type(input, '上海天气怎么样');
+    const input = screen.getByPlaceholderText('和我聊聊孕期的问题吧...');
+    await userEvent.type(input, '孕吐正常吗');
     fireEvent.submit(input.closest('form')!);
 
-    expect(sendMessage).toHaveBeenCalledWith({ text: '上海天气怎么样' });
+    expect(sendMessage).toHaveBeenCalledWith({ text: '孕吐正常吗' });
     expect(input).toHaveValue('');
   });
 });

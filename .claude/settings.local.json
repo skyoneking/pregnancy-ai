@@ -28,7 +28,15 @@
       "Bash(do)",
       "Bash(echo \"=== $spec ===\")",
       "Read(//f/AI/my-ai-app/openspec/changes/add-vitest-tests/specs/$spec/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(mkdir -p \"f:\\\\AI\\\\my-ai-app\\\\openspec\\\\changes\\\\pregnancy-assistant-mvp\\\\specs\\\\user-onboarding\")",
+      "Bash(mkdir -p \"f:\\\\AI\\\\my-ai-app\\\\openspec\\\\changes\\\\pregnancy-assistant-mvp\\\\specs\\\\pregnancy-context\")",
+      "Bash(mkdir -p \"f:\\\\AI\\\\my-ai-app\\\\openspec\\\\changes\\\\pregnancy-assistant-mvp\\\\specs\\\\pregnancy-tools\")",
+      "Bash(mkdir -p \"f:\\\\AI\\\\my-ai-app\\\\openspec\\\\changes\\\\pregnancy-assistant-mvp\\\\specs\\\\pregnancy-chat-ui\")",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_click",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d[''''progress'''']\\)\")"
     ]
   }
 }
