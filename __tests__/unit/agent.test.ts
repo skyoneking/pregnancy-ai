@@ -14,23 +14,23 @@ import { ToolMessage } from 'langchain';
 // contextSchema
 // ─────────────────────────────────────────────
 describe('contextSchema', () => {
-  it('{role:"mom", due_date:"2025-12-01"} 解析成功', () => {
-    const result = contextSchema.parse({ role: 'mom', due_date: '2025-12-01' });
-    expect(result).toEqual({ role: 'mom', due_date: '2025-12-01' });
+  it('{role:"mom", due_date:"2025-12-01", stage:"pregnancy"} 解析成功', () => {
+    const result = contextSchema.parse({ role: 'mom', due_date: '2025-12-01', stage: 'pregnancy' });
+    expect(result).toEqual({ role: 'mom', due_date: '2025-12-01', stage: 'pregnancy' });
   });
 
-  it('{role:"dad", due_date:"2025-12-01"} 解析成功', () => {
-    const result = contextSchema.parse({ role: 'dad', due_date: '2025-12-01' });
+  it('{role:"dad", due_date:"2025-12-01", stage:"pregnancy"} 解析成功', () => {
+    const result = contextSchema.parse({ role: 'dad', due_date: '2025-12-01', stage: 'pregnancy' });
     expect(result.role).toBe('dad');
   });
 
   it('role 非法值解析失败', () => {
-    const result = contextSchema.safeParse({ role: 'unknown', due_date: '2025-12-01' });
+    const result = contextSchema.safeParse({ role: 'unknown', due_date: '2025-12-01', stage: 'pregnancy' });
     expect(result.success).toBe(false);
   });
 
-  it('缺少 due_date 解析失败', () => {
-    const result = contextSchema.safeParse({ role: 'mom' });
+  it('缺少 stage 解析失败', () => {
+    const result = contextSchema.safeParse({ role: 'mom', due_date: '2025-12-01' });
     expect(result.success).toBe(false);
   });
 

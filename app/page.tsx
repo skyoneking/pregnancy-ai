@@ -4,8 +4,8 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getProfile } from "./lib/profile";
-import type { UserProfile } from "./types/profile";
+import { useAuth } from "./hooks/useAuth";
+import type { Profile } from "./_supabase/types";
 
 function calculateCurrentWeek(dueDate: string): number {
   const now = new Date();
@@ -16,41 +16,108 @@ function calculateCurrentWeek(dueDate: string): number {
   return Math.max(1, Math.min(42, Math.ceil(daysPregnant / 7)));
 }
 
+function calculatePostpartumDays(postpartumDate: string): number {
+  const now = new Date();
+  const postpartum = new Date(postpartumDate);
+  const msPerDay = 1000 * 60 * 60 * 24;
+  return Math.max(0, Math.floor((now.getTime() - postpartum.getTime()) / msPerDay));
+}
+
+function getStageLabel(stage: Profile['stage']): string {
+  switch (stage) {
+    case 'preconception': return '备孕期';
+    case 'pregnancy': return '孕期';
+    case 'postpartum': return '产后期';
+    default: return '';
+  }
+}
+
+function getRoleLabel(role: Profile['role']): string {
+  switch (role) {
+    case 'mom': return '准妈妈';
+    case 'dad': return '准爸爸';
+    default: return '';
+  }
+}
+
 export default function Chat() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [input, setInput] = useState("");
-  const [profile] = useState<UserProfile | null>(() =>
-    typeof window !== "undefined" ? getProfile() : null,
-  );
 
+  // 使用 useAuth 中的 profile 数据
+  const profile = user?.profile || null;
+
+  // 检查用户登录和档案状态
   useEffect(() => {
-    if (!profile) {
-      router.push("/onboarding");
+    if (!authLoading) {
+      if (!user) {
+        // 未登录，跳转到引导页
+        router.push('/onboarding');
+      } else if (!profile) {
+        // 已登录但无档案，跳转到引导页
+        router.push('/onboarding');
+      }
     }
-  }, [profile, router]);
+  }, [user, profile, authLoading, router]);
+
+  // 构建档案数据传递给 AI
+  const profileData = profile ? {
+    stage: profile.stage,
+    role: profile.role,
+    dueDate: profile.due_date,
+    postpartumDate: profile.postpartum_date,
+  } : undefined;
 
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({
-      body: profile ? { profile } : undefined,
+      body: profileData,
     }),
   });
 
+  if (authLoading || (!user && !authLoading) || (user && !profile)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-pink-50">
+        <div className="text-pink-600">加载中...</div>
+      </div>
+    );
+  }
+
   if (!profile) return null;
 
-  const currentWeek = calculateCurrentWeek(profile.dueDate);
-  const roleLabel = profile.role === "mom" ? "准妈妈" : "准爸爸";
+  // 计算显示信息
+  const roleLabel = getRoleLabel(profile.role);
+  let stageInfo = '';
+
+  if (profile.stage === 'pregnancy' && profile.due_date) {
+    const currentWeek = calculateCurrentWeek(profile.due_date);
+    stageInfo = `${roleLabel} · 孕 ${currentWeek} 周`;
+  } else if (profile.stage === 'postpartum' && profile.postpartum_date) {
+    const days = calculatePostpartumDays(profile.postpartum_date);
+    stageInfo = `${roleLabel} · 产后第 ${days} 天`;
+  } else {
+    stageInfo = `${roleLabel} · ${getStageLabel(profile.stage)}`;
+  }
 
   return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      {/* 孕周信息标签 */}
-      <div className="fixed top-0 left-0 right-0 flex justify-center py-3 bg-white border-b border-pink-100 z-10">
-        <span className="text-pink-600 font-medium text-sm">
-          {roleLabel} · 孕 {currentWeek} 周
+    <div className="flex flex-col w-full max-w-md mx-auto py-20 sm:py-24 px-3 sm:px-4 stretch">
+      {/* 阶段信息标签 */}
+      <div className="fixed top-0 left-0 right-0 flex justify-between items-center px-3 sm:px-4 py-2 sm:py-3 bg-white border-b border-pink-100 z-10 min-h-11">
+        <span className="text-pink-600 font-medium text-xs sm:text-sm truncate">
+          {stageInfo}
         </span>
+
+        {/* 编辑档案按钮 */}
+        <button
+          onClick={() => router.push('/profile')}
+          className="text-xs sm:text-sm text-pink-600 hover:text-pink-700 hover:underline transition-colors whitespace-nowrap ml-2"
+        >
+          编辑档案 →
+        </button>
       </div>
 
       {messages.map((message) => (
-        <div key={message.id} className="whitespace-pre-wrap">
+        <div key={message.id} className="whitespace-pre-wrap mb-4">
           {message.role === "user" ? "用户：" : "AI："}
           {message.parts.map((part, i) => {
             if (part.type === "text") {
@@ -80,7 +147,7 @@ export default function Chat() {
         }}
       >
         <input
-          className="fixed dark:bg-zinc-900 bottom-0 w-full max-w-md p-2 mb-8 border border-zinc-300 dark:border-zinc-800 rounded shadow-xl"
+          className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-3 mb-4 sm:mb-8 sm:p-2 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded shadow-xl text-sm sm:text-base"
           value={input}
           placeholder="和我聊聊孕期的问题吧..."
           onChange={(e) => setInput(e.currentTarget.value)}

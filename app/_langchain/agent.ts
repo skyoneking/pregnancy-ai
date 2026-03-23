@@ -7,18 +7,26 @@ import {
 import { MemorySaver } from "@langchain/langgraph";
 import * as z from "zod";
 import { ChatOpenAI } from "@langchain/openai";
+import { getKnowledgeForStage, searchKnowledgeByKeyword, type Stage } from "@/app/lib/knowledge";
 
 // ─── Context Schema ───────────────────────────────────────────────────────────
 
 const contextSchema = z.object({
-  role: z.enum(["mom", "dad"]),
-  due_date: z.string(), // YYYY-MM-DD
+  role: z.enum(["mom", "dad"]).optional(),
+  stage: z.enum(["preconception", "pregnancy", "postpartum"]),
+  due_date: z.string().optional(), // YYYY-MM-DD
+  postpartum_date: z.string().optional(), // YYYY-MM-DD
+  current_week: z.number().optional(),
+  postpartum_days: z.number().optional(),
 });
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
 
-const systemPrompt = `你是一个专业、温暖的孕期助手。
+const systemPrompt = `你是一个专业、温暖的全流程孕期助手。
 {role_intro}
+
+**当前阶段**: {stage}
+{stage_intro}
 
 你可以使用以下工具帮助用户：
 - calculate_pregnancy_info：根据预产期计算当前孕周、孕期阶段和距预产期天数
@@ -26,6 +34,18 @@ const systemPrompt = `你是一个专业、温暖的孕期助手。
 - check_food_safety：查询食物在孕期的安全等级
 - get_prenatal_schedule：获取产检时间表
 - assess_symptom：评估孕期症状的紧急程度
+- get_contextual_knowledge：获取当前阶段相关的专业知识
+
+**上下文推送指南:**
+- 备孕期：主动推送备孕知识，如叶酸补充、孕前检查、排卵追踪
+- 孕期：根据孕周主动推送发育信息、产检提醒、注意事项
+- 产后期：根据产后天数推送恢复知识、母乳喂养、新生儿护理
+
+**推送原则:**
+1. 每次对话最多主动推送 1 条相关知识
+2. 自然地将知识融入对话中，不要机械罗列
+3. 涉及关键时间点（如产检前）优先提醒
+4. 所有知识末尾自动添加医学免责声明
 
 请用关怀温和的语气回答，涉及健康建议时始终提醒用户以医生意见为准。`;
 
@@ -314,6 +334,77 @@ export const assessSymptom = tool(
   },
 );
 
+// ─── Tool: getContextualKnowledge ───────────────────────────────────────────────
+
+export const getContextualKnowledge = tool(
+  ({
+    stage,
+    week,
+    postpartumDay,
+    keyword
+  }: {
+    stage: Stage;
+    week?: number;
+    postpartumDay?: number;
+    keyword?: string;
+  }) => {
+    try {
+      let knowledgeItems;
+
+      if (keyword) {
+        // 按关键词搜索
+        knowledgeItems = searchKnowledgeByKeyword(keyword);
+      } else {
+        // 根据阶段、孕周、产后天数获取知识
+        knowledgeItems = getKnowledgeForStage(stage, week, postpartumDay);
+      }
+
+      // 将知识项转换为易读的文本格式
+      if (knowledgeItems.length === 0) {
+        return JSON.stringify({
+          message: "暂无相关知识",
+          disclaimer: "以上仅供参考，不构成医疗诊断，请以医生意见为准",
+        });
+      }
+
+      const formattedKnowledge = knowledgeItems.map((item) => ({
+        title: item.title,
+        content: item.content.split("\n").slice(0, 3).join("\n"), // 只返回前3行,避免内容过长
+      }));
+
+      return JSON.stringify({
+        knowledge: formattedKnowledge,
+        count: knowledgeItems.length,
+        disclaimer: "以上仅供参考，不构成医疗诊断，请以医生意见为准",
+      });
+    } catch (error) {
+      return JSON.stringify({
+        error: "获取知识失败",
+        message: error instanceof Error ? error.message : "未知错误",
+        disclaimer: "以上仅供参考，不构成医疗诊断，请以医生意见为准",
+      });
+    }
+  },
+  {
+    name: "get_contextual_knowledge",
+    description: `获取当前阶段相关的专业知识，用于智能推送。
+
+使用场景：
+1. 用户首次进入某阶段时推送核心知识
+2. 孕周变更时推送该周发育信息
+3. 产检前推送准备知识
+4. 用户询问特定话题时推送相关知识
+
+返回格式包含知识标题、内容和免责声明。`,
+    schema: z.object({
+      stage: z.enum(["preconception", "pregnancy", "postpartum"]).describe("用户当前阶段"),
+      week: z.number().optional().describe("当前孕周（仅孕期需要）"),
+      postpartumDay: z.number().optional().describe("产后天数（仅产后期需要）"),
+      keyword: z.string().optional().describe("搜索关键词（可选）"),
+    }),
+  },
+);
+
 // ─── Model ────────────────────────────────────────────────────────────────────
 
 const glmModel = new ChatOpenAI({
@@ -354,6 +445,7 @@ const langchainAgent = createAgent({
     checkFoodSafety,
     getPrenatalSchedule,
     assessSymptom,
+    getContextualKnowledge,
   ],
   checkpointer,
   middleware: [handleToolErrors],
