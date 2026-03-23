@@ -47,7 +47,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user?.profile) {
       setFormData({
-        stage: user.profile.stage,
+        stage: user.profile.stage || '',
         role: user.profile.role || '',
         due_date: user.profile.due_date || '',
         postpartum_date: user.profile.postpartum_date || '',
@@ -109,7 +109,7 @@ export default function ProfilePage() {
     // 恢复原始数据
     if (user?.profile) {
       setFormData({
-        stage: user.profile.stage,
+        stage: user.profile.stage || '',
         role: user.profile.role || '',
         due_date: user.profile.due_date || '',
         postpartum_date: user.profile.postpartum_date || '',
@@ -209,10 +209,10 @@ export default function ProfilePage() {
             </div>
             <div>
               <div className="text-lg font-semibold text-gray-800">
-                {getRoleLabel(profile.role)}
+                {getRoleLabel(profile.role as any)}
               </div>
               <div className="text-sm text-gray-500">
-                {profile.phone || '用户'}
+                {(profile as any).phone || '用户'}
               </div>
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function ProfilePage() {
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="text-gray-600">当前阶段</span>
               <span className="font-medium text-pink-600">
-                {getStageLabel(profile.stage)}
+                {getStageLabel(profile.stage as any)}
               </span>
             </div>
 

@@ -13,7 +13,7 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
 // 档案验证 Schema
 const profileSchema = z.object({
   stage: z.enum(['preconception', 'pregnancy', 'postpartum'], {
-    required_error: '请选择您的当前阶段',
+    message: '请选择您的当前阶段',
   }),
   role: z.enum(['mom', 'dad']).optional(),
   due_date: dateSchema.optional(),
@@ -145,8 +145,8 @@ export async function PUT(req: Request) {
 
     if (!validationResult.success) {
       // 提取第一个错误信息返回给用户
-      const errors = validationResult.error.errors;
-      const firstError = errors && errors.length > 0 ? errors[0] : null;
+      const issues = validationResult.error.issues;
+      const firstError = issues && issues.length > 0 ? issues[0] : null;
       const errorMessage = firstError?.message || '数据格式错误';
 
       return NextResponse.json(
