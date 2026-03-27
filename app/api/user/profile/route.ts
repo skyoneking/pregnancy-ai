@@ -12,6 +12,11 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
 
 // 档案验证 Schema
 const profileSchema = z.object({
+  username: z.string()
+    .regex(/^[\u4e00-\u9fa5a-zA-Z0-9_]{2,20}$/, {
+      message: '用户名需为 2-20 个字符，仅支持中英文、数字和下划线',
+    })
+    .optional(),
   stage: z.enum(['preconception', 'pregnancy', 'postpartum'], {
     message: '请选择您的当前阶段',
   }),
@@ -156,7 +161,7 @@ export async function PUT(req: Request) {
     }
 
     // 使用验证后的数据
-    const { stage, role, due_date, postpartum_date } = validationResult.data;
+    const { username, stage, role, due_date, postpartum_date } = validationResult.data;
 
     // 4. 检查档案是否存在
     const { data: existingProfile } = await supabase
@@ -170,6 +175,7 @@ export async function PUT(req: Request) {
     if (existingProfile) {
       // 更新现有档案
       const updateData: ProfileUpdate = {
+        ...(username !== undefined && { username }),
         stage,
         role: role || null,
         due_date: due_date || null,
@@ -189,6 +195,7 @@ export async function PUT(req: Request) {
       // 创建新档案
       const insertData: ProfileInsert = {
         user_id: user.id,
+        username: username || null,
         stage,
         role: role || null,
         due_date: due_date || null,

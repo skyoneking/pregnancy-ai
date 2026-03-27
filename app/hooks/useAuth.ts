@@ -16,7 +16,7 @@ interface UseAuthReturn {
   session: Session | null;
   loading: boolean;
   signIn: (phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signUp: (phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (phone: string, password: string, username: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -219,12 +219,12 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   // 注册
-  const signUp = useCallback(async (phone: string, password: string) => {
+  const signUp = useCallback(async (phone: string, password: string, username: string) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify({ phone, password, username }),
       });
 
       const data = await response.json();

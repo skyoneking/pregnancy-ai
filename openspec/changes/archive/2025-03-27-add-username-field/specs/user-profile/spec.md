@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: 创建用户档案
 系统 SHALL 在用户首次登录时自动创建用户档案。
@@ -72,35 +72,3 @@
 #### Scenario: 未登录用户尝试更新
 - **WHEN** 未登录用户请求更新档案
 - **THEN** API 返回 401 错误
-
-### Requirement: 档案数据验证
-系统 SHALL 在更新档案时验证数据的完整性和一致性。
-
-#### Scenario: 孕期阶段必填字段验证
-- **WHEN** 用户将阶段更新为 'pregnancy'
-- **THEN** 系统 MUST 验证 `due_date` 和 `role` 字段已填写
-- **AND** 如果缺少必填字段，返回 400 错误并提示
-
-#### Scenario: 预产期日期格式验证
-- **WHEN** 用户提交预产期
-- **THEN** 系统 MUST 验证格式为 YYYY-MM-DD
-- **AND** 验证日期在合理范围内（今天至今天 + 280 天）
-- **AND** 验证失败时返回具体错误信息
-
-#### Scenario: 备孕/产后阶段可选字段
-- **WHEN** 用户将阶段更新为 'preconception' 或 'postpartum'
-- **THEN** 系统 MUST 允许 `due_date` 和 `role` 为空
-- **AND** 其他阶段特定字段按需验证
-
-### Requirement: 多设备档案同步
-系统 SHALL 支持用户档案在多设备间实时同步。
-
-#### Scenario: 设备 A 更新档案，设备 B 实时同步
-- **WHEN** 用户在设备 A 上更新档案
-- **THEN** 设备 B 通过 Supabase Realtime 订阅接收更新
-- **AND** 设备 B 的 UI 自动刷新显示最新数据
-
-#### Scenario: 离线更新冲突解决
-- **WHEN** 用户在设备 A 离线更新档案，同时在设备 B 在线更新
-- **THEN** 系统采用"最后写入胜"策略
-- **AND** 保留最新的 `updated_at` 时间戳记录

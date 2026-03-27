@@ -212,7 +212,7 @@ export default function ProfilePage() {
                 {getRoleLabel(profile.role as any)}
               </div>
               <div className="text-sm text-gray-500">
-                {(profile as any).phone || '用户'}
+                {profile.username || '用户'}
               </div>
             </div>
           </div>

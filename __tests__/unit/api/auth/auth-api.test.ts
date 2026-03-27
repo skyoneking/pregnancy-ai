@@ -41,6 +41,7 @@ const mockSession = {
 const mockProfile = {
   id: 'profile-123',
   user_id: 'user-123',
+  username: null,
   stage: 'preconception',
   role: null,
   due_date: null,
@@ -342,7 +343,7 @@ describe('POST /api/auth/register', () => {
 
   describe('基础验证', () => {
     it('返回400（缺少手机号）', async () => {
-      const req = makeRequest('POST', { phone: '', password: 'password123', confirmPassword: 'password123' });
+      const req = makeRequest('POST', { phone: '', password: 'password123', username: '测试用户' });
       const res = await RegisterPOST(req);
 
       expect(res.status).toBe(400);
@@ -351,7 +352,7 @@ describe('POST /api/auth/register', () => {
     });
 
     it('返回400（手机号格式无效）', async () => {
-      const req = makeRequest('POST', { phone: '12345678901', password: 'password123', confirmPassword: 'password123' });
+      const req = makeRequest('POST', { phone: '12345678901', password: 'password123', username: '测试用户' });
       const res = await RegisterPOST(req);
 
       expect(res.status).toBe(400);
@@ -360,18 +361,54 @@ describe('POST /api/auth/register', () => {
     });
 
     it('返回400（密码少于6位）', async () => {
-      const req = makeRequest('POST', { phone: '13800138000', password: '12345', confirmPassword: '12345' });
+      const req = makeRequest('POST', { phone: '13800138000', password: '12345', username: '测试用户' });
       const res = await RegisterPOST(req);
 
       expect(res.status).toBe(400);
       const body = await res.json();
       expect(body.error).toBe('密码至少需要 6 位');
     });
+
+    it('返回400（缺少用户名）', async () => {
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123' });
+      const res = await RegisterPOST(req);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toBe('请输入用户名');
+    });
+
+    it('返回400（用户名格式无效：少于2位）', async () => {
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: 'a' });
+      const res = await RegisterPOST(req);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toContain('用户名');
+    });
+
+    it('返回400（用户名格式无效：包含特殊字符）', async () => {
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: 'user@name' });
+      const res = await RegisterPOST(req);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toContain('用户名');
+    });
+
+    it('返回400（用户名格式无效：超过20位）', async () => {
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: 'a'.repeat(21) });
+      const res = await RegisterPOST(req);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toContain('用户名');
+    });
   });
 
   describe('注册成功', () => {
     it('返回201+session数据', async () => {
-      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', confirmPassword: 'password123' });
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: '测试用户' });
       const res = await RegisterPOST(req);
 
       expect(res.status).toBe(201);
@@ -383,14 +420,14 @@ describe('POST /api/auth/register', () => {
     });
 
     it('注册后自动创建默认档案', async () => {
-      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', confirmPassword: 'password123' });
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: '测试用户' });
       await RegisterPOST(req);
 
-      expect(createDefaultProfile).toHaveBeenCalledWith('user-123');
+      expect(createDefaultProfile).toHaveBeenCalledWith('user-123', '测试用户');
     });
 
     it('调用adminClient.auth.admin.createUser', async () => {
-      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', confirmPassword: 'password123' });
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: '测试用户' });
       await RegisterPOST(req);
 
       expect(mockAdminClient.auth.admin.createUser).toHaveBeenCalledWith({
@@ -409,7 +446,7 @@ describe('POST /api/auth/register', () => {
         error: { message: 'User already been registered' },
       });
 
-      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', confirmPassword: 'password123' });
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: '测试用户' });
       const res = await RegisterPOST(req);
 
       expect(res.status).toBe(409);
@@ -421,7 +458,7 @@ describe('POST /api/auth/register', () => {
     it('返回500（服务器错误）', async () => {
       mockAdminClient.auth.admin.createUser.mockRejectedValue(new Error('Database error'));
 
-      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', confirmPassword: 'password123' });
+      const req = makeRequest('POST', { phone: '13800138000', password: 'password123', username: '测试用户' });
       const res = await RegisterPOST(req);
 
       expect(res.status).toBe(500);

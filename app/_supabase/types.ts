@@ -13,6 +13,7 @@ export type PushFrequency = 'daily' | 'weekly' | 'manual';
 export interface Profile {
   id: string;
   user_id: string;
+  username: string | null;
   stage: Stage | null;
   role: Role | null;
   due_date: string | null; // YYYY-MM-DD
@@ -24,6 +25,7 @@ export interface Profile {
 
 export interface ProfileInsert {
   user_id: string;
+  username?: string | null;
   stage?: Stage | null;
   role?: Role | null;
   due_date?: string | null;
@@ -32,6 +34,7 @@ export interface ProfileInsert {
 }
 
 export interface ProfileUpdate {
+  username?: string | null;
   stage?: Stage | null;
   role?: Role | null;
   due_date?: string | null;

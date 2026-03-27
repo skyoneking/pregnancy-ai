@@ -22,6 +22,7 @@ export default function OnboardingPage() {
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [username, setUsername] = useState('');
 
   // 档案信息
   const [step, setStep] = useState<OnboardingStep>('auth');
@@ -73,12 +74,25 @@ export default function OnboardingPage() {
       return;
     }
 
+    // 注册时验证用户名
+    if (authMode === 'register') {
+      if (!username) {
+        setAuthError('请输入用户名');
+        return;
+      }
+      const usernameRegex = /^[\u4e00-\u9fa5a-zA-Z0-9_]{2,20}$/;
+      if (!usernameRegex.test(username)) {
+        setAuthError('用户名需为 2-20 个字符，仅支持中英文、数字和下划线');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
       const result = authMode === 'login'
         ? await signIn(phone, password)
-        : await signUp(phone, password);
+        : await signUp(phone, password, username);
 
       if (result.success) {
         // 认证成功，等待 useAuth 更新后检查档案
@@ -391,6 +405,23 @@ export default function OnboardingPage() {
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
           />
         </div>
+
+        {/* 用户名（仅注册） */}
+        {authMode === 'register' && (
+          <div className="mb-4">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              用户名
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="请输入用户名"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
+            />
+          </div>
+        )}
 
         {/* 密码 */}
         <div className="mb-4">

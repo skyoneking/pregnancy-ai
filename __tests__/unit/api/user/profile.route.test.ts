@@ -15,6 +15,7 @@ const mockUser = { id: 'user-123', email: 'test@example.com' };
 const mockProfile = {
   id: 'profile-123',
   user_id: 'user-123',
+  username: null,
   stage: 'preconception',
   role: null,
   due_date: null,
@@ -375,5 +376,50 @@ describe('PUT /api/user/profile', () => {
     const body = await res.json();
     expect(body.success).toBe(false);
     expect(body.error).toBe('服务器错误，请稍后重试');
+  });
+
+  it('返回200（更新用户名）', async () => {
+    mockAuthenticatedUser();
+    const updatedProfile = { ...mockProfile, username: '新用户名' };
+    mockProfileQuery(updatedProfile);
+
+    const req = makeRequest('PUT', {
+      stage: 'preconception',
+      username: '新用户名',
+    });
+    const res = await PUT(req);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+  });
+
+  it('返回400（用户名格式无效）', async () => {
+    mockAuthenticatedUser();
+
+    const req = makeRequest('PUT', {
+      stage: 'preconception',
+      username: '@invalid!',
+    });
+    const res = await PUT(req);
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.success).toBe(false);
+    expect(body.error).toBeTruthy();
+  });
+
+  it('不传username时不影响现有数据', async () => {
+    mockAuthenticatedUser();
+    mockProfileQuery(mockProfile);
+
+    const req = makeRequest('PUT', {
+      stage: 'preconception',
+    });
+    const res = await PUT(req);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
   });
 });

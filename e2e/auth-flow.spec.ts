@@ -18,6 +18,8 @@ async function switchToRegister(page) {
   await page.getByRole('button', { name: '注册' }).first().click();
   // 等待确认密码字段出现
   await expect(page.locator('#confirmPassword')).toBeVisible({ timeout: 3000 });
+  // 等待用户名字段出现
+  await expect(page.locator('#username')).toBeVisible({ timeout: 3000 });
 }
 
 // 切换到登录 tab
@@ -28,14 +30,16 @@ async function switchToLogin(page) {
 }
 
 test.describe('认证流程 E2E 测试', () => {
-  test('注册流程：填写手机号→密码→注册成功→跳转阶段选择', async ({ page }) => {
+  test('注册流程：填写手机号→用户名→密码→注册成功→跳转阶段选择', async ({ page }) => {
     const testPhone = generatePhone();
     const testPassword = 'test123456';
+    const testUsername = '测试用户_' + Date.now().toString().slice(-4);
 
     await switchToRegister(page);
 
     // 填写注册信息
     await page.locator('#phone').fill(testPhone);
+    await page.locator('#username').fill(testUsername);
     await page.locator('#password').fill(testPassword);
     await page.locator('#confirmPassword').fill(testPassword);
 
@@ -52,6 +56,7 @@ test.describe('认证流程 E2E 测试', () => {
     await switchToRegister(page);
 
     await page.locator('#phone').fill(generatePhone());
+    await page.locator('#username').fill('测试用户');
     await page.locator('#password').fill('12345');
     await page.locator('#confirmPassword').fill('12345');
 
@@ -64,6 +69,7 @@ test.describe('认证流程 E2E 测试', () => {
     await switchToRegister(page);
 
     await page.locator('#phone').fill(generatePhone());
+    await page.locator('#username').fill('测试用户');
     await page.locator('#password').fill('test123456');
     await page.locator('#confirmPassword').fill('different123');
 
@@ -118,11 +124,38 @@ test.describe('认证流程 E2E 测试', () => {
     await switchToRegister(page);
 
     await page.locator('#phone').fill('23800138000');
+    await page.locator('#username').fill('测试用户');
     await page.locator('#password').fill('test123456');
     await page.locator('#confirmPassword').fill('test123456');
 
     await page.locator('form').getByRole('button', { name: '注册' }).click();
 
     await expect(page.getByText(/请输入有效的手机号/)).toBeVisible({ timeout: 3000 });
+  });
+
+  test('注册流程：缺少用户名显示错误', async ({ page }) => {
+    await switchToRegister(page);
+
+    await page.locator('#phone').fill(generatePhone());
+    // 不填用户名
+    await page.locator('#password').fill('test123456');
+    await page.locator('#confirmPassword').fill('test123456');
+
+    await page.locator('form').getByRole('button', { name: '注册' }).click();
+
+    await expect(page.getByText(/请输入用户名/)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('注册流程：用户名格式无效显示错误', async ({ page }) => {
+    await switchToRegister(page);
+
+    await page.locator('#phone').fill(generatePhone());
+    await page.locator('#username').fill('@');
+    await page.locator('#password').fill('test123456');
+    await page.locator('#confirmPassword').fill('test123456');
+
+    await page.locator('form').getByRole('button', { name: '注册' }).click();
+
+    await expect(page.getByRole('alert').filter({ hasText: /用户名/ })).toBeVisible({ timeout: 5000 });
   });
 });

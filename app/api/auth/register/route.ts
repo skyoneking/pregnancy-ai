@@ -10,7 +10,7 @@ import { createDefaultProfile } from '@/app/lib/create-default-profile';
  */
 export async function POST(req: Request) {
   try {
-    const { phone, password } = await req.json();
+    const { phone, password, username } = await req.json();
 
     // 1. 基础验证
     if (!phone || !password) {
@@ -33,6 +33,22 @@ export async function POST(req: Request) {
     if (password.length < 6) {
       return NextResponse.json(
         { success: false, error: '密码至少需要 6 位' },
+        { status: 400 }
+      );
+    }
+
+    // 4. 验证用户名（必填，2-20位，支持中文/英文/数字/下划线）
+    if (!username) {
+      return NextResponse.json(
+        { success: false, error: '请输入用户名' },
+        { status: 400 }
+      );
+    }
+
+    const usernameRegex = /^[\u4e00-\u9fa5a-zA-Z0-9_]{2,20}$/;
+    if (!usernameRegex.test(username)) {
+      return NextResponse.json(
+        { success: false, error: '用户名需为 2-20 个字符，仅支持中英文、数字和下划线' },
         { status: 400 }
       );
     }
@@ -91,7 +107,7 @@ export async function POST(req: Request) {
     }
 
     // 6. 创建默认档案
-    const profileResult = await createDefaultProfile(newUser.user.id);
+    const profileResult = await createDefaultProfile(newUser.user.id, username);
 
     // 7. 注册成功并自动登录，返回 session 和用户信息
     return NextResponse.json({
