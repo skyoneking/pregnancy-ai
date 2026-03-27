@@ -7,7 +7,7 @@ import type { ProfileInsert } from '@/app/_supabase/types';
  * @returns 创建成功返回档案数据，失败返回 null
  */
 export async function createDefaultProfile(userId: string, username?: string): Promise<ProfileInsert | null> {
-  console.log('[createDefaultProfile] Called with userId:', userId, 'username:', username, 'stack:', new Error().stack.split('\n').slice(0, 3).join('|'));
+  console.log('[createDefaultProfile] Called with userId:', userId, 'username:', username, 'stack:', new Error().stack?.split('\n').slice(0, 3).join('|'));
 
   try {
     const supabase = await createServerClient();
