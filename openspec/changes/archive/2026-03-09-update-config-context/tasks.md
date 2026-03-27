@@ -2,7 +2,7 @@
 
 - [x] 1.1 在 `openspec/config.yaml` 中，于 `schema: spec-driven` 后追加 `context` 块，内容包含：
   - `## Project Overview`：项目简介（中文天气助手聊天机器人，Next.js + LangChain/LangGraph）
-  - `## Tech Stack`：Next.js 16、React 19、TypeScript 5、LangChain 1.x、LangGraph、Vercel AI SDK、Alibaba QwQ 模型（ALIBABA_API_KEY + BASE_URL）、Tailwind CSS 4、Zod 4、Axios、pnpm
+  - `## Tech Stack`：Next.js 16、React 19、TypeScript 5、LangChain 1.x、LangGraph、Vercel AI SDK、Alibaba QwQ 模型（API_KEY + BASE_URL）、Tailwind CSS 4、Zod 4、Axios、pnpm
   - `## Architecture`：列出 `app/page.tsx`、`app/hooks/useAgentChat.ts`、`app/api/chat/route.ts`、`app/_langchain/agent.ts` 的路径及职责
   - `## Domain & Features`：工具调用（get_weather_for_location、get_user_location）、工具审批流程、LangGraph MemorySaver 对话记忆、流式响应、中文系统提示
   - `## Conventions`：TypeScript strict mode、`"use client"` 指令、模块化分层（agent / API / hooks / UI）、Conventional Commits

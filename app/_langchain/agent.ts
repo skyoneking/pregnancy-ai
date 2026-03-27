@@ -1,4 +1,5 @@
 import {
+  AIMessage,
   createAgent,
   createMiddleware,
   tool,
@@ -407,12 +408,12 @@ export const getContextualKnowledge = tool(
 
 // ─── Model ────────────────────────────────────────────────────────────────────
 
-const glmModel = new ChatOpenAI({
-  model: process.env.GLM_MODEL ?? "",
-  apiKey: process.env.GLM_API_KEY ?? "",
+const model = new ChatOpenAI({
+  model: process.env.MODEL ?? "",
+  apiKey: process.env.API_KEY ?? "",
   temperature: 0,
   configuration: {
-    baseURL: process.env.GLM_BASE_URL ?? "",
+    baseURL: process.env.BASE_URL ?? "",
   },
 });
 
@@ -430,6 +431,13 @@ export const handleToolErrors = createMiddleware({
       });
     }
   },
+  wrapModelCall: async (request, handler) => {
+    try {
+      return await handler(request);
+    } catch (error) {
+      return new AIMessage(`Model error: ${error}`);
+    }
+  },
 });
 
 // ─── Agent ────────────────────────────────────────────────────────────────────
@@ -437,7 +445,7 @@ export const handleToolErrors = createMiddleware({
 const checkpointer = new MemorySaver();
 
 const langchainAgent = createAgent({
-  model: glmModel,
+  model: model,
   systemPrompt,
   tools: [
     calculatePregnancyInfo,

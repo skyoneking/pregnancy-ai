@@ -26,9 +26,9 @@
    NEXT_PUBLIC_SUPABASE_URL=https://your-prod-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-prod-anon-key
    SUPABASE_SERVICE_ROLE_KEY=your-prod-service-role-key
-   GLM_API_KEY=your-glm-api-key
-   GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
-   GLM_MODEL=glm-4-flash
+   API_KEY=your-glm-api-key
+   BASE_URL=https://open.bigmodel.cn/api/paas/v4/
+   MODEL=glm-4-flash
    ```
 4. 部署
 
@@ -80,7 +80,7 @@
 
 ### 处理步骤
 1. 检查智谱平台状态和 API Key 余额
-2. 检查 `GLM_API_KEY` 环境变量是否正确
+2. 检查 `API_KEY` 环境变量是否正确
 3. 查看 Vercel Logs 中的错误详情
 
 ### 临时措施
