@@ -9,6 +9,9 @@ type AuthMode = 'login' | 'register' | 'reset';
 type OnboardingStep = 'auth' | 'stage' | 'details';
 
 export default function OnboardingPage() {
+  // useEffect(() => {
+  //   fetch('api/rag').then(res => res.json()).then(data => console.log(data));
+  // }, [])
   const router = useRouter();
   const { signIn, signUp, user } = useAuth();
 

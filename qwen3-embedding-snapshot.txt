@@ -1,0 +1,337 @@
+uid=1_0 RootWebArea "qwen3-embedding" url="https://ollama.com/library/qwen3-embedding"
+  uid=1_1 ignored
+    uid=1_2 ignored
+      uid=1_3 banner
+        uid=1_4 navigation
+          uid=1_5 link "Ollama" url="https://ollama.com/"
+            uid=1_6 image "Ollama" url="https://ollama.com/public/ollama.png"
+          uid=1_7 ignored
+          uid=1_8 ignored
+          uid=1_9 ignored
+            uid=1_10 LabelText
+              uid=1_11 ignored
+                uid=1_12 ignored
+            uid=1_13 ignored
+              uid=1_14 ignored
+                uid=1_15 ignored
+      uid=1_16 ignored
+        uid=1_17 ignored
+          uid=1_18 ignored
+            uid=1_19 ignored
+              uid=1_20 ignored
+                uid=1_21 ignored
+                  uid=1_22 link "qwen3-embedding" url="https://ollama.com/library/qwen3-embedding"
+                    uid=1_23 StaticText "qwen3-embedding"
+                      uid=1_24 InlineTextBox "qwen3-embedding"
+          uid=1_25 ignored
+            uid=1_26 ignored
+              uid=1_27 ignored
+                uid=1_28 ignored
+                  uid=1_29 image
+                  uid=1_30 ignored
+                    uid=1_31 StaticText "1.4M"
+                      uid=1_24 InlineTextBox "1.4M"
+                  uid=1_32 ignored
+                    uid=1_33 StaticText " Downloads"
+                      uid=1_24 InlineTextBox " Downloads"
+                uid=1_34 generic description="Sep 23, 2025 8:26 PM UTC"
+                  uid=1_35 image
+                  uid=1_36 ignored
+                    uid=1_37 StaticText "Updated "
+                      uid=1_24 InlineTextBox "Updated "
+                  uid=1_38 ignored
+                    uid=1_39 StaticText "6 months ago"
+                      uid=1_24 InlineTextBox "6 months ago"
+            uid=1_40 generic
+              uid=1_41 heading "Building upon the foundational models of the Qwen3 series, Qwen3 Embedding provides a comprehensive range of text embeddings models in various sizes" level="2"
+                uid=1_42 generic
+                  uid=1_43 StaticText "Building upon the foundational models of the Qwen3 series, Qwen3 Embedding provides a comprehensive range of text embeddings models in various sizes"
+                    uid=1_24 InlineTextBox "Building upon the foundational models of the Qwen3 series, Qwen3 Embedding "
+                    uid=1_24 InlineTextBox "provides a comprehensive range of text embeddings models in various sizes"
+              uid=1_44 ignored
+              uid=1_45 ignored
+            uid=1_46 ignored
+              uid=1_47 ignored
+                uid=1_48 StaticText "embedding"
+                  uid=1_24 InlineTextBox "embedding"
+              uid=1_49 ignored
+                uid=1_50 StaticText "0.6b"
+                  uid=1_24 InlineTextBox "0.6b"
+              uid=1_51 ignored
+                uid=1_52 StaticText "4b"
+                  uid=1_24 InlineTextBox "4b"
+              uid=1_53 ignored
+                uid=1_54 StaticText "8b"
+                  uid=1_24 InlineTextBox "8b"
+        uid=1_55 ignored
+          uid=1_56 generic
+            uid=1_57 generic
+              uid=1_58 ignored
+                uid=1_59 ignored
+                  uid=1_60 button "CLI"
+                    uid=1_61 StaticText "CLI"
+                      uid=1_24 InlineTextBox "CLI"
+                  uid=1_62 button "cURL"
+                    uid=1_63 StaticText "cURL"
+                      uid=1_24 InlineTextBox "cURL"
+                  uid=1_64 button "Python"
+                    uid=1_65 StaticText "Python"
+                      uid=1_24 InlineTextBox "Python"
+                  uid=1_66 button "JavaScript"
+                    uid=1_67 StaticText "JavaScript"
+                      uid=1_24 InlineTextBox "JavaScript"
+              uid=1_68 generic
+                uid=1_69 generic
+                  uid=1_70 button "Copy"
+                    uid=1_71 image
+                uid=1_72 ignored
+                  uid=1_73 generic
+                    uid=1_74 StaticText "ollama pull qwen3-embedding"
+                      uid=1_24 InlineTextBox "ollama pull qwen3-embedding"
+          uid=1_75 generic
+            uid=1_76 ignored
+              uid=1_77 heading "Models" level="2"
+                uid=1_78 StaticText "Models"
+                  uid=1_24 InlineTextBox "Models"
+              uid=1_79 link "View all →" url="https://ollama.com/library/qwen3-embedding/tags"
+                uid=1_80 StaticText "View all →"
+                  uid=1_24 InlineTextBox "View all →"
+            uid=1_81 ignored
+              uid=1_82 ignored
+                uid=1_83 ignored
+                  uid=1_84 paragraph
+                    uid=1_85 StaticText "Name"
+                      uid=1_24 InlineTextBox "Name"
+                  uid=1_86 paragraph
+                    uid=1_87 StaticText "Size"
+                      uid=1_24 InlineTextBox "Size"
+                  uid=1_88 paragraph
+                    uid=1_89 StaticText "Context"
+                      uid=1_24 InlineTextBox "Context"
+                  uid=1_90 paragraph
+                    uid=1_91 StaticText "Input"
+                      uid=1_24 InlineTextBox "Input"
+                uid=1_92 ignored
+                  uid=1_93 ignored
+                    uid=1_94 link "qwen3-embedding:latest" url="https://ollama.com/library/qwen3-embedding:latest"
+                      uid=1_95 StaticText "qwen3-embedding:latest"
+                        uid=1_24 InlineTextBox "qwen3-embedding:latest"
+                    uid=1_96 ignored
+                  uid=1_97 paragraph
+                    uid=1_98 StaticText "4.7GB"
+                      uid=1_24 InlineTextBox "4.7GB"
+                  uid=1_99 paragraph
+                    uid=1_100 StaticText "40K"
+                      uid=1_24 InlineTextBox "40K"
+                  uid=1_101 paragraph
+                    uid=1_102 StaticText "Text"
+                      uid=1_24 InlineTextBox "Text"
+                uid=1_103 ignored
+                  uid=1_104 ignored
+                    uid=1_105 link "qwen3-embedding:0.6b" url="https://ollama.com/library/qwen3-embedding:0.6b"
+                      uid=1_106 StaticText "qwen3-embedding:0.6b"
+                        uid=1_24 InlineTextBox "qwen3-embedding:0.6b"
+                    uid=1_107 ignored
+                  uid=1_108 paragraph
+                    uid=1_109 StaticText "639MB"
+                      uid=1_24 InlineTextBox "639MB"
+                  uid=1_110 paragraph
+                    uid=1_111 StaticText "32K"
+                      uid=1_24 InlineTextBox "32K"
+                  uid=1_112 paragraph
+                    uid=1_113 StaticText "Text"
+                      uid=1_24 InlineTextBox "Text"
+                uid=1_114 ignored
+                  uid=1_115 ignored
+                    uid=1_116 link "qwen3-embedding:4b" url="https://ollama.com/library/qwen3-embedding:4b"
+                      uid=1_117 StaticText "qwen3-embedding:4b"
+                        uid=1_24 InlineTextBox "qwen3-embedding:4b"
+                    uid=1_118 ignored
+                  uid=1_119 paragraph
+                    uid=1_120 StaticText "2.5GB"
+                      uid=1_24 InlineTextBox "2.5GB"
+                  uid=1_121 paragraph
+                    uid=1_122 StaticText "40K"
+                      uid=1_24 InlineTextBox "40K"
+                  uid=1_123 paragraph
+                    uid=1_124 StaticText "Text"
+                      uid=1_24 InlineTextBox "Text"
+                uid=1_125 ignored
+                  uid=1_126 ignored
+                    uid=1_127 link "qwen3-embedding:8b" url="https://ollama.com/library/qwen3-embedding:8b"
+                      uid=1_128 StaticText "qwen3-embedding:8b"
+                        uid=1_24 InlineTextBox "qwen3-embedding:8b"
+                    uid=1_129 ignored
+                      uid=1_130 StaticText "latest"
+                        uid=1_24 InlineTextBox "latest"
+                    uid=1_131 ignored
+                  uid=1_132 paragraph
+                    uid=1_133 StaticText "4.7GB"
+                      uid=1_24 InlineTextBox "4.7GB"
+                  uid=1_134 paragraph
+                    uid=1_135 StaticText "40K"
+                      uid=1_24 InlineTextBox "40K"
+                  uid=1_136 paragraph
+                    uid=1_137 StaticText "Text"
+                      uid=1_24 InlineTextBox "Text"
+        uid=1_138 generic
+          uid=1_139 ignored
+            uid=1_140 heading "Readme" level="2"
+              uid=1_141 StaticText "Readme"
+                uid=1_24 InlineTextBox "Readme"
+          uid=1_142 ignored
+            uid=1_143 generic
+              uid=1_144 ignored
+                uid=1_145 image url="https://ollama.com/assets/library/qwen3-embedding/d68d4b9c-c9a2-4665-bde1-3b29d5c510c7"
+              uid=1_146 heading "Highlights" level="2"
+                uid=1_147 StaticText "Highlights"
+                  uid=1_24 InlineTextBox "Highlights"
+              uid=1_148 paragraph
+                uid=1_149 StaticText "The Qwen3 Embedding model series is specifically designed for text embedding tasks. Building upon the dense foundational models of the Qwen3 series, it provides a comprehensive range of text embeddings models in various sizes (0.6B, 4B, and 8B). This series inherits the exceptional multilingual capabilities, long-text understanding, and reasoning skills of its foundational model. The Qwen3 Embedding series represents significant advancements in multiple text embedding and ranking tasks, including text retrieval, code retrieval, text classification, text clustering, and bitext mining."
+                  uid=1_24 InlineTextBox "The Qwen3 Embedding model series is specifically designed for text embedding tasks. "
+                  uid=1_24 InlineTextBox "Building upon the dense foundational models of the Qwen3 series, it provides a "
+                  uid=1_24 InlineTextBox "comprehensive range of text embeddings models in various sizes (0.6B, 4B, and 8B). "
+                  uid=1_24 InlineTextBox "This series inherits the exceptional multilingual capabilities, long-text understanding, "
+                  uid=1_24 InlineTextBox "and reasoning skills of its foundational model. The Qwen3 Embedding series "
+                  uid=1_24 InlineTextBox "represents significant advancements in multiple text embedding and ranking tasks, "
+                  uid=1_24 InlineTextBox "including text retrieval, code retrieval, text classification, text clustering, and bitext "
+                  uid=1_24 InlineTextBox "mining."
+              uid=1_150 paragraph
+                uid=1_151 strong
+                  uid=1_152 StaticText "Exceptional Versatility"
+                    uid=1_24 InlineTextBox "Exceptional Versatility"
+                uid=1_153 StaticText ": The embedding model has achieved state-of-the-art performance across a wide range of downstream application evaluations. The 8B size embedding model ranks "
+                  uid=1_24 InlineTextBox ": The embedding model has achieved state-of-the-art "
+                  uid=1_24 InlineTextBox "performance across a wide range of downstream application evaluations. The 8B size "
+                  uid=1_24 InlineTextBox "embedding model ranks "
+                uid=1_154 strong
+                  uid=1_155 StaticText "No.1"
+                    uid=1_24 InlineTextBox "No.1"
+                uid=1_156 StaticText " in the MTEB multilingual leaderboard (as of June 5, 2025, score "
+                  uid=1_24 InlineTextBox " in the MTEB multilingual leaderboard (as of June 5, "
+                  uid=1_24 InlineTextBox "2025, score "
+                uid=1_157 strong
+                  uid=1_158 StaticText "70.58"
+                    uid=1_24 InlineTextBox "70.58"
+                uid=1_159 StaticText ")."
+                  uid=1_24 InlineTextBox ")."
+              uid=1_160 paragraph
+                uid=1_161 strong
+                  uid=1_162 StaticText "Comprehensive Flexibility"
+                    uid=1_24 InlineTextBox "Comprehensive Flexibility"
+                uid=1_163 StaticText ": The Qwen3 Embedding series offers a full spectrum of sizes (from 0.6B to 8B) for embedding models, catering to diverse use cases that prioritize efficiency and effectiveness. Developers can seamlessly combine these two modules. Additionally, these models allow for flexible vector definitions across all dimensions, support user-defined instructions to enhance performance for specific tasks, languages, or scenarios."
+                  uid=1_24 InlineTextBox ": The Qwen3 Embedding series offers a full spectrum of "
+                  uid=1_24 InlineTextBox "sizes (from 0.6B to 8B) for embedding models, catering to diverse use cases that "
+                  uid=1_24 InlineTextBox "prioritize efficiency and effectiveness. Developers can seamlessly combine these two "
+                  uid=1_24 InlineTextBox "modules. Additionally, these models allow for flexible vector definitions across all "
+                  uid=1_24 InlineTextBox "dimensions, support user-defined instructions to enhance performance for specific "
+                  uid=1_24 InlineTextBox "tasks, languages, or scenarios."
+              uid=1_164 paragraph
+                uid=1_165 strong
+                  uid=1_166 StaticText "Multilingual Capability"
+                    uid=1_24 InlineTextBox "Multilingual Capability"
+                uid=1_167 StaticText ": The Qwen3 Embedding series offer support for over 100 languages, thanks to the multilingual capabilites of Qwen3 models. This includes various programming languages, and provides robust multilingual, cross-lingual, and code retrieval capabilities."
+                  uid=1_24 InlineTextBox ": The Qwen3 Embedding series offer support for over 100 "
+                  uid=1_24 InlineTextBox "languages, thanks to the multilingual capabilites of Qwen3 models. This includes "
+                  uid=1_24 InlineTextBox "various programming languages, and provides robust multilingual, cross-lingual, and "
+                  uid=1_24 InlineTextBox "code retrieval capabilities."
+              uid=1_168 paragraph
+                uid=1_169 strong
+                  uid=1_170 StaticText "Qwen3-Embedding-8B"
+                    uid=1_24 InlineTextBox "Qwen3-Embedding-8B"
+                uid=1_171 StaticText " has the following features:"
+                  uid=1_24 InlineTextBox " has the following features:"
+              uid=1_172 list
+                uid=1_173 listitem level="1"
+                  uid=1_174 ListMarker "• "
+                    uid=1_24 ignored
+                  uid=1_175 StaticText "Model Type: Text Embedding"
+                    uid=1_24 InlineTextBox "Model Type: Text Embedding"
+                uid=1_176 listitem level="1"
+                  uid=1_177 ListMarker "• "
+                    uid=1_24 ignored
+                  uid=1_178 StaticText "Supported Languages: 100+ Languages"
+                    uid=1_24 InlineTextBox "Supported Languages: 100+ Languages"
+                uid=1_179 listitem level="1"
+                  uid=1_180 ListMarker "• "
+                    uid=1_24 ignored
+                  uid=1_181 StaticText "Number of Paramaters: 8B"
+                    uid=1_24 InlineTextBox "Number of Paramaters: 8B"
+                uid=1_182 listitem level="1"
+                  uid=1_183 ListMarker "• "
+                    uid=1_24 ignored
+                  uid=1_184 StaticText "Context Length: 32k"
+                    uid=1_24 InlineTextBox "Context Length: 32k"
+                uid=1_185 listitem level="1"
+                  uid=1_186 ListMarker "• "
+                    uid=1_24 ignored
+                  uid=1_187 StaticText "Embedding Dimension: Up to 4096, supports user-defined output dimensions ranging from 32 to 4096"
+                    uid=1_24 InlineTextBox "Embedding Dimension: Up to 4096, supports user-defined output dimensions "
+                    uid=1_24 InlineTextBox "ranging from 32 to 4096"
+              uid=1_188 paragraph
+                uid=1_189 StaticText "For more details, including benchmark evaluation, hardware requirements, and inference performance, please refer to the model’s "
+                  uid=1_24 InlineTextBox "For more details, including benchmark evaluation, hardware requirements, and "
+                  uid=1_24 InlineTextBox "inference performance, please refer to the model’s "
+                uid=1_190 link "blog" url="https://qwenlm.github.io/blog/qwen3-embedding/"
+                  uid=1_191 StaticText "blog"
+                    uid=1_24 InlineTextBox "blog"
+                uid=1_192 StaticText ", "
+                  uid=1_24 InlineTextBox ", "
+                uid=1_193 link "GitHub" url="https://github.com/QwenLM/Qwen3-Embedding"
+                  uid=1_194 StaticText "GitHub"
+                    uid=1_24 InlineTextBox "GitHub"
+                uid=1_195 StaticText "."
+                  uid=1_24 InlineTextBox "."
+          uid=1_196 ignored
+            uid=1_197 ignored
+              uid=1_198 ignored
+            uid=1_199 ignored
+          uid=1_200 ignored
+          uid=1_201 ignored
+          uid=1_202 ignored
+            uid=1_203 ignored
+            uid=1_204 ignored
+      uid=1_205 contentinfo
+        uid=1_206 ignored
+          uid=1_207 ignored
+            uid=1_208 list
+              uid=1_209 listitem level="1"
+                uid=1_210 link "Blog" url="https://ollama.com/blog"
+                  uid=1_211 StaticText "Blog"
+                    uid=1_24 InlineTextBox "Blog"
+              uid=1_212 listitem level="1"
+                uid=1_213 link "Download" url="https://ollama.com/download"
+                  uid=1_214 StaticText "Download"
+                    uid=1_24 InlineTextBox "Download"
+              uid=1_215 listitem level="1"
+                uid=1_216 link "Docs" url="https://docs.ollama.com/"
+                  uid=1_217 StaticText "Docs"
+                    uid=1_24 InlineTextBox "Docs"
+            uid=1_218 list
+              uid=1_219 listitem level="1"
+                uid=1_220 link "GitHub" url="https://github.com/ollama/ollama"
+                  uid=1_221 StaticText "GitHub"
+                    uid=1_24 InlineTextBox "GitHub"
+              uid=1_222 listitem level="1"
+                uid=1_223 link "Discord" url="https://discord.com/invite/ollama"
+                  uid=1_224 StaticText "Discord"
+                    uid=1_24 InlineTextBox "Discord"
+              uid=1_225 listitem level="1"
+                uid=1_226 link "X (Twitter)" url="https://twitter.com/ollama"
+                  uid=1_227 StaticText "X (Twitter)"
+                    uid=1_24 InlineTextBox "X (Twitter)"
+              uid=1_228 listitem level="1"
+                uid=1_229 link "Meetups" url="https://lu.ma/ollama"
+                  uid=1_230 StaticText "Meetups"
+                    uid=1_24 InlineTextBox "Meetups"
+              uid=1_231 listitem level="1"
+                uid=1_232 link "Privacy" url="https://ollama.com/privacy"
+                  uid=1_233 StaticText "Privacy"
+                    uid=1_24 InlineTextBox "Privacy"
+              uid=1_234 listitem level="1"
+                uid=1_235 link "Terms" url="https://ollama.com/terms"
+                  uid=1_236 StaticText "Terms"
+                    uid=1_24 InlineTextBox "Terms"
+            uid=1_237 ignored
+              uid=1_238 StaticText "© 2026 Ollama Inc."
+                uid=1_24 InlineTextBox "© 2026 Ollama Inc."

@@ -5,10 +5,16 @@ import {
   tool,
   ToolMessage,
 } from "langchain";
-import { MemorySaver } from "@langchain/langgraph";
 import * as z from "zod";
 import { ChatOpenAI } from "@langchain/openai";
-import { getKnowledgeForStage, searchKnowledgeByKeyword, type Stage } from "@/app/lib/knowledge";
+import {
+  getKnowledgeForStage,
+  searchKnowledgeByKeyword,
+  type Stage,
+} from "@/app/lib/knowledge";
+import { InMemoryStore } from "@langchain/langgraph";
+
+const store = new InMemoryStore();
 
 // ─── Context Schema ───────────────────────────────────────────────────────────
 
@@ -37,6 +43,8 @@ const systemPrompt = `你是一个专业、温暖的全流程孕期助手。
 - assess_symptom：评估孕期症状的紧急程度
 - get_contextual_knowledge：获取当前阶段相关的专业知识
 
+- retrieve：检索与用户输入关联的信息（非孕期）
+
 **上下文推送指南:**
 - 备孕期：主动推送备孕知识，如叶酸补充、孕前检查、排卵追踪
 - 孕期：根据孕周主动推送发育信息、产检提醒、注意事项
@@ -58,7 +66,9 @@ export const calculatePregnancyInfo = tool(
     const due = new Date(due_date);
     // Full-term pregnancy is 40 weeks = 280 days
     const msPerDay = 1000 * 60 * 60 * 24;
-    const daysRemaining = Math.round((due.getTime() - now.getTime()) / msPerDay);
+    const daysRemaining = Math.round(
+      (due.getTime() - now.getTime()) / msPerDay,
+    );
     const daysPregnant = 280 - daysRemaining;
     const currentWeek = Math.max(1, Math.min(42, Math.ceil(daysPregnant / 7)));
 
@@ -75,7 +85,8 @@ export const calculatePregnancyInfo = tool(
   },
   {
     name: "calculate_pregnancy_info",
-    description: "根据预产期计算当前孕周、孕期阶段（孕早期/孕中期/孕晚期）和距预产期剩余天数",
+    description:
+      "根据预产期计算当前孕周、孕期阶段（孕早期/孕中期/孕晚期）和距预产期剩余天数",
     schema: z.object({
       due_date: z.string().describe("预产期，格式 YYYY-MM-DD"),
     }),
@@ -126,16 +137,21 @@ const weeklyData: Record<number, { mom: string; dad: string }> = {
 export const getWeeklyDevelopment = tool(
   ({ week, role }: { week: number; role: "mom" | "dad" }) => {
     // Find the closest week in our data
-    const availableWeeks = Object.keys(weeklyData).map(Number).sort((a, b) => a - b);
+    const availableWeeks = Object.keys(weeklyData)
+      .map(Number)
+      .sort((a, b) => a - b);
     const closest = availableWeeks.reduce((prev, curr) =>
       Math.abs(curr - week) < Math.abs(prev - week) ? curr : prev,
     );
     const data = weeklyData[closest];
-    return data[role] + `\n\n【以上为孕${closest}周参考信息，以医生检查结果为准】`;
+    return (
+      data[role] + `\n\n【以上为孕${closest}周参考信息，以医生检查结果为准】`
+    );
   },
   {
     name: "get_weekly_development",
-    description: "获取指定孕周的胎儿发育和孕期变化信息，根据用户角色（准妈妈/准爸爸）返回不同视角的内容",
+    description:
+      "获取指定孕周的胎儿发育和孕期变化信息，根据用户角色（准妈妈/准爸爸）返回不同视角的内容",
     schema: z.object({
       week: z.number().describe("当前孕周（1-42）"),
       role: z.enum(["mom", "dad"]).describe("用户角色"),
@@ -151,23 +167,41 @@ const foodDatabase: Record<string, { level: SafetyLevel; reason: string }> = {
   香蕉: { level: "安全", reason: "富含钾和B族维生素，有助于缓解孕吐" },
   牛奶: { level: "安全", reason: "优质钙质来源，孕期每天建议300-500ml" },
   鸡蛋: { level: "安全", reason: "优质蛋白质和DHA来源，全熟食用" },
-  三文鱼: { level: "安全", reason: "富含DHA，有益胎儿大脑发育，注意选择低汞鱼类" },
+  三文鱼: {
+    level: "安全",
+    reason: "富含DHA，有益胎儿大脑发育，注意选择低汞鱼类",
+  },
   菠菜: { level: "安全", reason: "富含叶酸和铁，孕期极佳的蔬菜选择" },
   西兰花: { level: "安全", reason: "富含叶酸、维生素C和钙，孕期推荐食用" },
   豆腐: { level: "安全", reason: "优质植物蛋白和钙质来源" },
   坚果: { level: "适量", reason: "富含不饱和脂肪酸，但热量高，每天一小把即可" },
   西瓜: { level: "适量", reason: "补水利尿，但含糖量高，血糖正常者可适量食用" },
   葡萄: { level: "适量", reason: "含有白藜芦醇，适量食用，避免过多摄入糖分" },
-  榴莲: { level: "适量", reason: "高糖高热量，妊娠期糖尿病患者应避免，普通孕妇少量可以" },
-  螃蟹: { level: "避免", reason: "性寒，可能引起子宫收缩，有流产风险，孕早期尤其不建议" },
+  榴莲: {
+    level: "适量",
+    reason: "高糖高热量，妊娠期糖尿病患者应避免，普通孕妇少量可以",
+  },
+  螃蟹: {
+    level: "避免",
+    reason: "性寒，可能引起子宫收缩，有流产风险，孕早期尤其不建议",
+  },
   螺蛳: { level: "避免", reason: "性寒且易携带寄生虫，孕期建议避免" },
   生鱼片: { level: "避免", reason: "生食存在寄生虫和细菌风险，孕期建议避免" },
   生蚝: { level: "避免", reason: "生食贝类存在感染李斯特菌风险，孕期避免" },
   薏仁: { level: "避免", reason: "中医认为有促进子宫收缩作用，孕期建议避免" },
-  酒精: { level: "禁止", reason: "酒精可穿过胎盘导致胎儿酒精综合症，孕期完全禁止" },
+  酒精: {
+    level: "禁止",
+    reason: "酒精可穿过胎盘导致胎儿酒精综合症，孕期完全禁止",
+  },
   生肉: { level: "禁止", reason: "可能含有弓形虫、沙门氏菌等，危及胎儿健康" },
-  未经巴氏消毒的奶酪: { level: "禁止", reason: "可能含有李斯特菌，对孕妇和胎儿危险" },
-  咖啡因: { level: "适量", reason: "每天摄入不超过200mg（约一杯咖啡），过量增加流产风险" },
+  未经巴氏消毒的奶酪: {
+    level: "禁止",
+    reason: "可能含有李斯特菌，对孕妇和胎儿危险",
+  },
+  咖啡因: {
+    level: "适量",
+    reason: "每天摄入不超过200mg（约一杯咖啡），过量增加流产风险",
+  },
 };
 
 export const checkFoodSafety = tool(
@@ -177,7 +211,8 @@ export const checkFoodSafety = tool(
       return JSON.stringify({
         food: food_name,
         level: "未知",
-        reason: "该食物暂无孕期安全数据，建议咨询医生或营养师后再决定是否食用。",
+        reason:
+          "该食物暂无孕期安全数据，建议咨询医生或营养师后再决定是否食用。",
         disclaimer: "以上仅供参考，不构成医疗诊断，请以医生意见为准",
       });
     }
@@ -206,14 +241,46 @@ interface CheckItem {
 }
 
 const prenatalSchedule: CheckItem[] = [
-  { week: "6-8", name: "建档检查", description: "确认妊娠，建立孕期档案，血常规、尿常规、传染病筛查" },
-  { week: "11-13", name: "NT检查", description: "颈后透明层超声检查，评估染色体异常风险" },
-  { week: "15-20", name: "唐氏筛查", description: "评估胎儿唐氏综合症及神经管缺陷风险" },
-  { week: "20-24", name: "大排畸（系统超声）", description: "详细筛查胎儿器官结构发育情况" },
-  { week: "24-28", name: "糖耐量检查（OGTT）", description: "筛查妊娠期糖尿病" },
-  { week: "28-32", name: "胎儿生长发育评估", description: "超声检查胎儿生长发育，胎位检查" },
-  { week: "32-36", name: "胎心监护开始", description: "定期胎心监护，评估胎儿宫内状态" },
-  { week: "36-40", name: "每周产检", description: "宫颈检查，胎位确认，评估分娩方式" },
+  {
+    week: "6-8",
+    name: "建档检查",
+    description: "确认妊娠，建立孕期档案，血常规、尿常规、传染病筛查",
+  },
+  {
+    week: "11-13",
+    name: "NT检查",
+    description: "颈后透明层超声检查，评估染色体异常风险",
+  },
+  {
+    week: "15-20",
+    name: "唐氏筛查",
+    description: "评估胎儿唐氏综合症及神经管缺陷风险",
+  },
+  {
+    week: "20-24",
+    name: "大排畸（系统超声）",
+    description: "详细筛查胎儿器官结构发育情况",
+  },
+  {
+    week: "24-28",
+    name: "糖耐量检查（OGTT）",
+    description: "筛查妊娠期糖尿病",
+  },
+  {
+    week: "28-32",
+    name: "胎儿生长发育评估",
+    description: "超声检查胎儿生长发育，胎位检查",
+  },
+  {
+    week: "32-36",
+    name: "胎心监护开始",
+    description: "定期胎心监护，评估胎儿宫内状态",
+  },
+  {
+    week: "36-40",
+    name: "每周产检",
+    description: "宫颈检查，胎位确认，评估分娩方式",
+  },
   { week: "40+", name: "过期评估", description: "超过预产期需评估引产时机" },
 ];
 
@@ -254,7 +321,8 @@ export const getPrenatalSchedule = tool(
   },
   {
     name: "get_prenatal_schedule",
-    description: "获取产检时间表，根据当前孕周返回已完成、待完成和即将进行的产检项目",
+    description:
+      "获取产检时间表，根据当前孕周返回已完成、待完成和即将进行的产检项目",
     schema: z.object({
       current_week: z.number().describe("当前孕周"),
     }),
@@ -274,25 +342,56 @@ interface SymptomRule {
 const symptomRules: SymptomRule[] = [
   // Emergency
   {
-    keywords: ["大量出血", "严重腹痛", "破水", "抽搐", "昏迷", "剧烈头痛视物模糊"],
+    keywords: [
+      "大量出血",
+      "严重腹痛",
+      "破水",
+      "抽搐",
+      "昏迷",
+      "剧烈头痛视物模糊",
+    ],
     level: "🔴急诊",
     advice: "请立即拨打120或前往急诊，这是孕期紧急情况，不可延误",
   },
   // Visit doctor
   {
-    keywords: ["出血", "规律宫缩", "胎动减少", "持续头痛", "水肿加重", "发烧", "高烧"],
+    keywords: [
+      "出血",
+      "规律宫缩",
+      "胎动减少",
+      "持续头痛",
+      "水肿加重",
+      "发烧",
+      "高烧",
+    ],
     level: "🟠就医",
     advice: "建议24-48小时内就医，请联系您的产科医生",
   },
   // Watch
   {
-    keywords: ["偶尔腹胀", "轻微水肿", "腰酸", "失眠", "便秘", "胃灼热", "轻微头晕"],
+    keywords: [
+      "偶尔腹胀",
+      "轻微水肿",
+      "腰酸",
+      "失眠",
+      "便秘",
+      "胃灼热",
+      "轻微头晕",
+    ],
     level: "🟡观察",
     advice: "这是常见的孕期不适，注意观察。如症状持续加重，请就医",
   },
   // Normal
   {
-    keywords: ["孕吐", "恶心", "疲劳", "尿频", "乳房胀痛", "妊娠纹", "轻微腹胀"],
+    keywords: [
+      "孕吐",
+      "恶心",
+      "疲劳",
+      "尿频",
+      "乳房胀痛",
+      "妊娠纹",
+      "轻微腹胀",
+    ],
     level: "🟢正常",
     advice: "这是正常的孕期反应，注意休息，保持营养均衡",
   },
@@ -314,7 +413,8 @@ export const assessSymptom = tool(
       matched = {
         keywords: [],
         level: "🟡观察",
-        advice: "该症状暂无明确参考，建议记录症状并在下次产检时告知医生，如有加重请及时就医",
+        advice:
+          "该症状暂无明确参考，建议记录症状并在下次产检时告知医生，如有加重请及时就医",
       };
     }
 
@@ -327,7 +427,8 @@ export const assessSymptom = tool(
   },
   {
     name: "assess_symptom",
-    description: "评估孕期症状的紧急程度，分四级：🟢正常/🟡观察/🟠就医/🔴急诊。采用宁严勿松原则",
+    description:
+      "评估孕期症状的紧急程度，分四级：🟢正常/🟡观察/🟠就医/🔴急诊。采用宁严勿松原则",
     schema: z.object({
       symptom: z.string().describe("症状描述"),
       current_week: z.number().optional().describe("当前孕周（可选）"),
@@ -342,7 +443,7 @@ export const getContextualKnowledge = tool(
     stage,
     week,
     postpartumDay,
-    keyword
+    keyword,
   }: {
     stage: Stage;
     week?: number;
@@ -398,7 +499,9 @@ export const getContextualKnowledge = tool(
 
 返回格式包含知识标题、内容和免责声明。`,
     schema: z.object({
-      stage: z.enum(["preconception", "pregnancy", "postpartum"]).describe("用户当前阶段"),
+      stage: z
+        .enum(["preconception", "pregnancy", "postpartum"])
+        .describe("用户当前阶段"),
       week: z.number().optional().describe("当前孕周（仅孕期需要）"),
       postpartumDay: z.number().optional().describe("产后天数（仅产后期需要）"),
       keyword: z.string().optional().describe("搜索关键词（可选）"),
@@ -442,8 +545,6 @@ export const handleToolErrors = createMiddleware({
 
 // ─── Agent ────────────────────────────────────────────────────────────────────
 
-const checkpointer = new MemorySaver();
-
 const langchainAgent = createAgent({
   model: model,
   systemPrompt,
@@ -454,13 +555,12 @@ const langchainAgent = createAgent({
     getPrenatalSchedule,
     assessSymptom,
     getContextualKnowledge,
+    // retrieve,
   ],
-  checkpointer,
   middleware: [handleToolErrors],
   contextSchema,
+  checkpointer: true,
+  store,
 });
 
-export {
-  langchainAgent,
-  contextSchema,
-};
+export { langchainAgent, contextSchema };

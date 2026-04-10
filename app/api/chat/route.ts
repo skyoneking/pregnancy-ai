@@ -1,8 +1,8 @@
 import { createUIMessageStreamResponse, UIMessage } from "ai";
 import { toBaseMessages, toUIMessageStream } from "@ai-sdk/langchain";
-import { langchainAgent } from "@/app/_langchain/agent";
 import { createServerClient } from "@/app/_supabase/server";
 import type { Profile } from "@/app/_supabase/types";
+import { graph } from "@/app/_graph/graph";
 
 /**
  * 计算当前孕周或产后天数
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
     // 6. 转换消息并调用 agent
     const langchainMessages = await toBaseMessages(messages);
 
-    const stream = await langchainAgent.stream(
+    const stream = await graph.stream(
       { messages: langchainMessages },
       {
         streamMode: ["values", "messages", "custom"],
