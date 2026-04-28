@@ -52,7 +52,16 @@
       "mcp__chrome-devtools__get_network_request",
       "mcp__chrome-devtools__new_page",
       "mcp__chrome-devtools__close_page",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_type",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "Bash(npx openspec *)",
+      "Bash(npm ls *)",
+      "Bash(openspec --version)"
     ]
   }
 }

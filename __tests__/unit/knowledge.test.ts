@@ -7,7 +7,7 @@ import {
   pregnancyKnowledge,
   postpartumKnowledge,
   type KnowledgeItem,
-} from '@/app/lib/knowledge';
+} from '@/app/_graph/knowledge';
 
 describe('知识库数据结构', () => {
   it('备孕期知识包含6个知识点', () => {

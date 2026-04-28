@@ -7,7 +7,7 @@
 
 // ─── 类型定义 ────────────────────────────────────────────────────────────────
 
-export type Stage = 'preconception' | 'pregnancy' | 'postpartum';
+import type { Stage } from '@/app/_supabase/types';
 
 export interface KnowledgeItem {
   id: string;

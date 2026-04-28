@@ -6,15 +6,15 @@ import {
   getPrenatalSchedule,
   assessSymptom,
   getContextualKnowledge,
-} from '@/app/_langchain/agent';
+} from '@/app/_graph/tools';
 
 // Mock knowledge functions
-vi.mock('@/app/lib/knowledge', () => ({
+vi.mock('@/app/_graph/knowledge', () => ({
   getKnowledgeForStage: vi.fn(),
   searchKnowledgeByKeyword: vi.fn(),
 }));
 
-import { getKnowledgeForStage, searchKnowledgeByKeyword } from '@/app/lib/knowledge';
+import { getKnowledgeForStage, searchKnowledgeByKeyword } from '@/app/_graph/knowledge';
 
 describe('AI Tools: calculatePregnancyInfo', () => {
   beforeEach(() => {
@@ -22,10 +22,9 @@ describe('AI Tools: calculatePregnancyInfo', () => {
   });
 
   it('根据预产期计算当前孕周（假设今天是280天前）', async () => {
-    // Mock今天为预产期前280天（孕1周）
     const today = new Date();
     const dueDate = new Date(today);
-    dueDate.setDate(dueDate.getDate() + 279); // 280 - 1 = 279天后是预产期
+    dueDate.setDate(dueDate.getDate() + 279);
 
     const dueDateStr = dueDate.toISOString().split('T')[0];
     const result = JSON.parse(await calculatePregnancyInfo.invoke({ due_date: dueDateStr }));
@@ -36,7 +35,6 @@ describe('AI Tools: calculatePregnancyInfo', () => {
   });
 
   it('孕13周属于孕早期', async () => {
-    // 13周 = 91天，预产期前189天
     const today = new Date();
     const dueDate = new Date(today);
     dueDate.setDate(dueDate.getDate() + 189);
@@ -49,7 +47,6 @@ describe('AI Tools: calculatePregnancyInfo', () => {
   });
 
   it('孕14周属于孕中期', async () => {
-    // 14周 = 98天，预产期前182天
     const today = new Date();
     const dueDate = new Date(today);
     dueDate.setDate(dueDate.getDate() + 182);
@@ -62,7 +59,6 @@ describe('AI Tools: calculatePregnancyInfo', () => {
   });
 
   it('孕27周属于孕中期', async () => {
-    // 27周 = 189天，预产期前91天
     const today = new Date();
     const dueDate = new Date(today);
     dueDate.setDate(dueDate.getDate() + 91);
@@ -75,7 +71,6 @@ describe('AI Tools: calculatePregnancyInfo', () => {
   });
 
   it('孕28周属于孕晚期', async () => {
-    // 28周 = 196天，预产期前84天
     const today = new Date();
     const dueDate = new Date(today);
     dueDate.setDate(dueDate.getDate() + 84);
@@ -99,7 +94,7 @@ describe('AI Tools: calculatePregnancyInfo', () => {
   it('超过预产期显示0天剩余', async () => {
     const today = new Date();
     const dueDate = new Date(today);
-    dueDate.setDate(dueDate.getDate() - 10); // 预产期已过10天
+    dueDate.setDate(dueDate.getDate() - 10);
 
     const dueDateStr = dueDate.toISOString().split('T')[0];
     const result = JSON.parse(await calculatePregnancyInfo.invoke({ due_date: dueDateStr }));
@@ -141,7 +136,6 @@ describe('AI Tools: getWeeklyDevelopment', () => {
   it('不在数据中的孕周自动选择最近的周数', async () => {
     const result = await getWeeklyDevelopment.invoke({ week: 15, role: 'mom' });
 
-    // 应该返回14周或16周的信息（15距离14和16都是1，应该选择较小的14）
     expect(result).toMatch(/孕1[46]周/);
   });
 
@@ -225,14 +219,12 @@ describe('AI Tools: getPrenatalSchedule', () => {
   it('孕20周唐氏筛查为即将进行（15-20周）', async () => {
     const result = JSON.parse(await getPrenatalSchedule.invoke({ current_week: 20 }));
 
-    // 孕20周时，唐氏筛查（15-20周）仍在即将进行范围内（start-4=11，20>=11）
     expect(result.next?.name).toBe('唐氏筛查');
   });
 
   it('孕25周糖耐量检查为即将进行（24-28周）', async () => {
     const result = JSON.parse(await getPrenatalSchedule.invoke({ current_week: 25 }));
 
-    // 孕25周时，糖耐量检查（24-28周）在即将进行范围内（start-4=20，25>=20）
     expect(result.next?.name).toBe('糖耐量检查（OGTT）');
   });
 
@@ -245,7 +237,6 @@ describe('AI Tools: getPrenatalSchedule', () => {
   it('孕10周已完成建档检查（假设）', async () => {
     const result = JSON.parse(await getPrenatalSchedule.invoke({ current_week: 10 }));
 
-    // 孕10周时，建档检查（6-8周）应该已完成
     const completedNames = result.completed.map((c: any) => c.name);
     expect(completedNames).toContain('建档检查');
   });
