@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { calculateWeek, calculatePostpartumDay } from '@/lib/pregnancy/calculator';
+import { calculateWeek, calculatePostpartumDay, calculatePregnancyInfo } from '@/lib/pregnancy/calculator';
 
 describe('calculateWeek', () => {
   beforeEach(() => {
@@ -77,5 +77,55 @@ describe('calculatePostpartumDay', () => {
   it('产后 43 天（进入哺乳期）', () => {
     vi.setSystemTime(new Date('2025-05-04'));
     expect(calculatePostpartumDay('2025-03-22')).toBe(43);
+  });
+});
+
+describe('calculatePregnancyInfo', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('孕13周属于孕早期', () => {
+    vi.setSystemTime(new Date('2025-05-04'));
+    // daysRemaining = 189, daysPregnant = 91, week = ceil(91/7) = 13
+    const due = new Date('2025-05-04');
+    due.setDate(due.getDate() + 189);
+    const dueStr = due.toISOString().split('T')[0];
+    const info = calculatePregnancyInfo(dueStr);
+    expect(info.currentWeek).toBe(13);
+    expect(info.stage).toBe('孕早期');
+    expect(info.daysRemaining).toBe(189);
+  });
+
+  it('孕14周属于孕中期', () => {
+    vi.setSystemTime(new Date('2025-05-04'));
+    const due = new Date('2025-05-04');
+    due.setDate(due.getDate() + 182);
+    const dueStr = due.toISOString().split('T')[0];
+    const info = calculatePregnancyInfo(dueStr);
+    expect(info.currentWeek).toBe(14);
+    expect(info.stage).toBe('孕中期');
+  });
+
+  it('孕28周属于孕晚期', () => {
+    vi.setSystemTime(new Date('2025-05-04'));
+    const due = new Date('2025-05-04');
+    due.setDate(due.getDate() + 84);
+    const dueStr = due.toISOString().split('T')[0];
+    const info = calculatePregnancyInfo(dueStr);
+    expect(info.currentWeek).toBe(28);
+    expect(info.stage).toBe('孕晚期');
+  });
+
+  it('预产期已过 daysRemaining 为 0', () => {
+    vi.setSystemTime(new Date('2025-05-04'));
+    const info = calculatePregnancyInfo('2024-01-01');
+    expect(info.daysRemaining).toBe(0);
+    expect(info.currentWeek).toBe(40);
+    expect(info.stage).toBe('孕晚期');
   });
 });

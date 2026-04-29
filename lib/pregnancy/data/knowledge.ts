@@ -1,23 +1,14 @@
-/**
- * 知识库数据结构
- *
- * 包含备孕期、孕期、产后期的健康知识
- * 所有医疗建议仅供参考,不构成专业医疗诊断
- */
-
-// ─── 类型定义 ────────────────────────────────────────────────────────────────
-
-import type { Stage } from '@/app/_supabase/types';
+import type { MainStage } from '../types';
 
 export interface KnowledgeItem {
   id: string;
   title: string;
   content: string;
-  stage: Stage;
-  week?: number;           // 孕期专属: 孕周 (1-42)
-  postpartumDay?: number;  // 产后专属: 产后天数 (1-42)
+  stage: MainStage;
+  week?: number;
+  postpartumDay?: number;
   tags: string[];
-  autoPush?: boolean;      // 是否自动推送
+  autoPush?: boolean;
 }
 
 // ─── 备孕期知识 (6个知识点) ───────────────────────────────────────────────────
@@ -212,7 +203,6 @@ export const preconceptionKnowledge: KnowledgeItem[] = [
 
 // ─── 孕期知识 (每周要点) ───────────────────────────────────────────────────────
 
-// 辅助函数:生成孕期每周知识
 function generateWeeklyKnowledge(week: number): KnowledgeItem {
   const getWeekInfo = (w: number) => {
     if (w <= 12) return { stage: '孕早期', focus: '器官发育', key: '叶酸、休息、防畸形' };
@@ -225,7 +215,6 @@ function generateWeeklyKnowledge(week: number): KnowledgeItem {
   let development = '';
   let tips = '';
 
-  // 根据孕周生成特定内容
   if (week === 5) {
     development = '心脏开始跳动,神经管闭合';
     tips = '继续补充叶酸,避免接触有害物质';
@@ -282,11 +271,10 @@ ${tips}
     stage: 'pregnancy',
     week,
     tags: [info.stage, '发育', '产检'],
-    autoPush: week % 4 === 0, // 每4周自动推送一次
+    autoPush: week % 4 === 0,
   };
 }
 
-// 生成1-42周的知识
 export const pregnancyKnowledge: Record<number, KnowledgeItem> = {};
 for (let i = 1; i <= 42; i++) {
   pregnancyKnowledge[i] = generateWeeklyKnowledge(i);
@@ -666,9 +654,6 @@ export const postpartumKnowledge: KnowledgeItem[] = [
 
 // ─── 知识库索引函数 ───────────────────────────────────────────────────────────
 
-/**
- * 按关键词搜索知识
- */
 export function searchKnowledgeByKeyword(keyword: string): KnowledgeItem[] {
   const lowerKeyword = keyword.toLowerCase();
 

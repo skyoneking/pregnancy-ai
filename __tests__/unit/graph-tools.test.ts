@@ -9,7 +9,7 @@ import {
 } from '@/app/_graph/tools';
 
 // Mock knowledge functions
-vi.mock('@/app/_graph/knowledge', () => ({
+vi.mock('@/lib/pregnancy/data/knowledge', () => ({
   knowledgeBase: {
     preconception: [
       { id: 'pre-1', title: '叶酸补充', content: '第一行\n第二行\n第三行\n第四行\n第五行', stage: 'preconception', tags: ['营养'], autoPush: true },
@@ -24,7 +24,7 @@ vi.mock('@/app/_graph/knowledge', () => ({
   searchKnowledgeByKeyword: vi.fn(),
 }));
 
-import { searchKnowledgeByKeyword } from '@/app/_graph/knowledge';
+import { searchKnowledgeByKeyword } from '@/lib/pregnancy/data/knowledge';
 
 describe('AI Tools: calculatePregnancyInfo', () => {
   beforeEach(() => {

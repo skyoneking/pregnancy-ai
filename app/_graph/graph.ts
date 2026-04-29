@@ -19,21 +19,20 @@ const stateSchema = new StateSchema({
   messages: MessagesValue,
 });
 
-const langchainAgentNode: GraphNode<typeof stateSchema> = async (
-  state,
-  config,
-) => {
-  await langchainAgent.invoke(state, config as any);
-  return new Command({
-    goto: END,
-  });
-};
+// const langchainAgentNode: GraphNode<typeof stateSchema> = async (
+//   state,
+//   config,
+// ) => {
+//   await langchainAgent.invoke(state, config as any);
+//   return new Command({
+//     goto: END,
+//   });
+// };
 
 const graph = new StateGraph(stateSchema)
-  .addNode("langchainAgentNode", langchainAgentNode, {
-    ends: [END],
-  })
+  .addNode("langchainAgentNode", langchainAgent.graph)
   .addEdge(START, "langchainAgentNode")
+  .addEdge("langchainAgentNode", END)
   .compile({
     checkpointer,
     store,
