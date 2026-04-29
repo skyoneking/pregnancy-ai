@@ -22,11 +22,13 @@ const store = new InMemoryStore();
 
 const contextSchema = z.object({
   role: z.enum(["mom", "dad"]).optional(),
-  stage: z.enum(["preconception", "pregnancy", "postpartum"]),
-  due_date: z.string().optional(), // YYYY-MM-DD
-  postpartum_date: z.string().optional(), // YYYY-MM-DD
+  stage: z.enum(["preconception", "pregnancy", "postpartum"]).optional(),
+  subStage: z.string().optional(),
+  due_date: z.string().optional(),
+  postpartum_date: z.string().optional(),
   current_week: z.number().optional(),
   postpartum_days: z.number().optional(),
+  available_tools: z.string().optional(),
 });
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
@@ -34,16 +36,11 @@ const contextSchema = z.object({
 const systemPrompt = `你是一个专业、温暖的全流程孕期助手。
 {role_intro}
 
-**当前阶段**: {stage}
+**当前阶段**: {stage}（{subStage}）
 {stage_intro}
 
 你可以使用以下工具帮助用户：
-- calculate_pregnancy_info：根据预产期计算当前孕周、孕期阶段和距预产期天数
-- get_weekly_development：获取指定孕周的胎儿发育信息
-- check_food_safety：查询食物在孕期的安全等级
-- get_prenatal_schedule：获取产检时间表
-- assess_symptom：评估孕期症状的紧急程度
-- get_contextual_knowledge：获取当前阶段相关的专业知识
+{available_tools}
 
 **上下文推送指南:**
 - 备孕期：主动推送备孕知识，如叶酸补充、孕前检查、排卵追踪

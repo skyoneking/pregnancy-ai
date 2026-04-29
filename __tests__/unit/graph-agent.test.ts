@@ -21,14 +21,14 @@ describe('contextSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('缺少 stage 解析失败', () => {
+  it('缺少 stage 时解析成功（stage 为 optional）', () => {
     const result = contextSchema.safeParse({ role: 'mom', due_date: '2025-12-01' });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
-  it('{} 解析失败', () => {
+  it('{} 解析成功（所有字段 optional）', () => {
     const result = contextSchema.safeParse({});
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 });
 

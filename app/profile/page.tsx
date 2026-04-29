@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/hooks/useAuth';
 import type { Profile, Stage, Role } from '@/app/_supabase/types';
+import { createContext } from '@/lib/pregnancy';
 
 type PushFrequency = 'daily' | 'weekly' | 'manual';
 
@@ -25,23 +26,6 @@ export default function ProfilePage() {
 
   // 推送频率设置
   const [pushFrequency, setPushFrequency] = useState<PushFrequency>('daily');
-
-  // 计算当前孕周或产后天数
-  const calculateCurrentWeek = (dueDate: string) => {
-    const now = new Date();
-    const due = new Date(dueDate);
-    const msPerDay = 1000 * 60 * 60 * 24;
-    const daysRemaining = Math.round((due.getTime() - now.getTime()) / msPerDay);
-    const daysPregnant = 280 - daysRemaining;
-    return Math.max(1, Math.min(42, Math.ceil(daysPregnant / 7)));
-  };
-
-  const calculatePostpartumDays = (postpartumDate: string) => {
-    const now = new Date();
-    const postpartum = new Date(postpartumDate);
-    const msPerDay = 1000 * 60 * 60 * 24;
-    return Math.max(0, Math.floor((now.getTime() - postpartum.getTime()) / msPerDay));
-  };
 
   // 当用户数据变化时更新表单数据
   useEffect(() => {
@@ -145,7 +129,8 @@ export default function ProfilePage() {
 
   const profile = user.profile;
 
-  // 计算显示信息
+  const pregnancyCtx = useMemo(() => createContext(profile), [profile]);
+
   const getStageLabel = (stage: Stage) => {
     switch (stage) {
       case 'preconception': return '备孕期';
@@ -162,12 +147,15 @@ export default function ProfilePage() {
   };
 
   let stageInfo = '';
-  if (profile.stage === 'pregnancy' && profile.due_date) {
-    const currentWeek = calculateCurrentWeek(profile.due_date);
-    stageInfo = `孕 ${currentWeek} 周`;
-  } else if (profile.stage === 'postpartum' && profile.postpartum_date) {
-    const days = calculatePostpartumDays(profile.postpartum_date);
-    stageInfo = `产后第 ${days} 天`;
+  if (pregnancyCtx.subStage) {
+    const label = pregnancyCtx.stageDef?.label;
+    if (pregnancyCtx.week != null) {
+      stageInfo = `${label} · 孕 ${pregnancyCtx.week} 周`;
+    } else if (pregnancyCtx.postpartumDay != null) {
+      stageInfo = `${label} · 产后第 ${pregnancyCtx.postpartumDay} 天`;
+    } else if (label) {
+      stageInfo = label;
+    }
   }
 
   // 日期范围限制

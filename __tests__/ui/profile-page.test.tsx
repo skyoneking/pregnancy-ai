@@ -65,7 +65,7 @@ describe('ProfilePage', () => {
       render(<ProfilePage />);
 
       expect(screen.getByText('个人中心')).toBeInTheDocument();
-      expect(screen.getByText(/备孕期/)).toBeInTheDocument();
+      expect(screen.getAllByText(/备孕期/).length).toBeGreaterThan(0);
     });
 
     it('显示"编辑档案"按钮', () => {
@@ -287,7 +287,7 @@ describe('ProfilePage', () => {
     it('备孕期用户不显示孕周信息', () => {
       render(<ProfilePage />);
 
-      expect(screen.getByText(/备孕期/)).toBeInTheDocument();
+      expect(screen.getAllByText(/备孕期/).length).toBeGreaterThan(0);
       // 备孕期不应该显示孕周或产后天数
       expect(screen.queryByText(/孕 \d+ 周/)).not.toBeInTheDocument();
       expect(screen.queryByText(/产后第 \d+ 天/)).not.toBeInTheDocument();

@@ -2,9 +2,10 @@ import { tool } from "langchain";
 import * as z from "zod";
 import type { Stage } from "@/app/_supabase/types";
 import {
-  getKnowledgeForStage,
   searchKnowledgeByKeyword,
+  knowledgeBase,
 } from "@/app/_graph/knowledge";
+import type { KnowledgeItem } from "@/app/_graph/knowledge";
 
 // ─── Tool: calculatePregnancyInfo ─────────────────────────────────────────────
 
@@ -385,6 +386,39 @@ export const assessSymptom = tool(
 );
 
 // ─── Tool: getContextualKnowledge ───────────────────────────────────────────────
+
+function getKnowledgeForStage(
+  stage: Stage,
+  week?: number,
+  postpartumDay?: number
+): KnowledgeItem[] {
+  const result: KnowledgeItem[] = [];
+  const { preconception, pregnancy, postpartum } = knowledgeBase;
+
+  if (stage === 'preconception') {
+    return preconception.filter((k) => k.autoPush);
+  }
+
+  if (stage === 'pregnancy' && week) {
+    const weekKnowledge = pregnancy[week];
+    if (weekKnowledge) {
+      result.push(weekKnowledge);
+    }
+  }
+
+  if (stage === 'postpartum' && postpartumDay) {
+    const relevant = postpartum.filter(
+      (k) => k.postpartumDay && k.postpartumDay <= postpartumDay && k.autoPush
+    );
+    result.push(
+      ...relevant
+        .sort((a, b) => (b.postpartumDay || 0) - (a.postpartumDay || 0))
+        .slice(0, 3)
+    );
+  }
+
+  return result;
+}
 
 export const getContextualKnowledge = tool(
   ({

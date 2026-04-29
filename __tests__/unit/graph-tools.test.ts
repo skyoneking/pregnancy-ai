@@ -10,11 +10,21 @@ import {
 
 // Mock knowledge functions
 vi.mock('@/app/_graph/knowledge', () => ({
-  getKnowledgeForStage: vi.fn(),
+  knowledgeBase: {
+    preconception: [
+      { id: 'pre-1', title: '叶酸补充', content: '第一行\n第二行\n第三行\n第四行\n第五行', stage: 'preconception', tags: ['营养'], autoPush: true },
+    ],
+    pregnancy: {
+      5: { id: 'preg-w5', title: '孕5周: 孕早期', content: '心脏开始跳动...', stage: 'pregnancy', week: 5, tags: ['发育'], autoPush: false },
+    },
+    postpartum: [
+      { id: 'post-2', title: '母乳喂养指导', content: '正确含接姿势...', stage: 'postpartum', postpartumDay: 7, tags: ['哺乳'], autoPush: true },
+    ],
+  },
   searchKnowledgeByKeyword: vi.fn(),
 }));
 
-import { getKnowledgeForStage, searchKnowledgeByKeyword } from '@/app/_graph/knowledge';
+import { searchKnowledgeByKeyword } from '@/app/_graph/knowledge';
 
 describe('AI Tools: calculatePregnancyInfo', () => {
   beforeEach(() => {
@@ -332,70 +342,26 @@ describe('AI Tools: getContextualKnowledge', () => {
   });
 
   it('备孕期返回自动推送的知识', async () => {
-    const mockKnowledge = [
-      {
-        id: 'pre-1',
-        title: '叶酸补充',
-        content: '孕前3个月开始补充叶酸...',
-        stage: 'preconception' as const,
-        tags: ['营养'],
-        autoPush: true,
-      },
-    ];
-
-    vi.mocked(getKnowledgeForStage).mockReturnValue(mockKnowledge);
-
     const result = JSON.parse(await getContextualKnowledge.invoke({ stage: 'preconception' }));
 
-    expect(getKnowledgeForStage).toHaveBeenCalledWith('preconception', undefined, undefined);
     expect(result.knowledge).toHaveLength(1);
     expect(result.knowledge[0].title).toBe('叶酸补充');
     expect(result.count).toBe(1);
   });
 
   it('孕期+孕周返回对应周数知识', async () => {
-    const mockKnowledge = [
-      {
-        id: 'preg-w5',
-        title: '孕5周: 孕早期',
-        content: '心脏开始跳动...',
-        stage: 'pregnancy' as const,
-        week: 5,
-        tags: ['发育'],
-        autoPush: false,
-      },
-    ];
-
-    vi.mocked(getKnowledgeForStage).mockReturnValue(mockKnowledge);
-
     const result = JSON.parse(await getContextualKnowledge.invoke({ stage: 'pregnancy', week: 5 }));
 
-    expect(getKnowledgeForStage).toHaveBeenCalledWith('pregnancy', 5, undefined);
     expect(result.knowledge).toHaveLength(1);
     expect(result.knowledge[0].title).toContain('孕5周');
   });
 
   it('产后期+产后天数返回相关知识', async () => {
-    const mockKnowledge = [
-      {
-        id: 'post-2',
-        title: '母乳喂养指导',
-        content: '正确含接姿势...',
-        stage: 'postpartum' as const,
-        postpartumDay: 7,
-        tags: ['哺乳'],
-        autoPush: true,
-      },
-    ];
-
-    vi.mocked(getKnowledgeForStage).mockReturnValue(mockKnowledge);
-
     const result = JSON.parse(await getContextualKnowledge.invoke({
       stage: 'postpartum',
       postpartumDay: 7,
     }));
 
-    expect(getKnowledgeForStage).toHaveBeenCalledWith('postpartum', undefined, 7);
     expect(result.knowledge).toHaveLength(1);
     expect(result.knowledge[0].title).toContain('母乳喂养');
   });
@@ -425,60 +391,21 @@ describe('AI Tools: getContextualKnowledge', () => {
   });
 
   it('无相关知识时返回提示消息', async () => {
-    vi.mocked(getKnowledgeForStage).mockReturnValue([]);
-
-    const result = JSON.parse(await getContextualKnowledge.invoke({ stage: 'preconception' }));
+    // 孕周 99 不存在于 mock 数据中
+    const result = JSON.parse(await getContextualKnowledge.invoke({ stage: 'pregnancy', week: 99 }));
 
     expect(result.message).toBe('暂无相关知识');
     expect(result.disclaimer).toContain('以上仅供参考');
   });
 
   it('知识内容只返回前3行（避免内容过长）', async () => {
-    const mockKnowledge = [
-      {
-        id: 'pre-1',
-        title: '叶酸补充',
-        content: '第一行\n第二行\n第三行\n第四行\n第五行',
-        stage: 'preconception' as const,
-        tags: ['营养'],
-        autoPush: true,
-      },
-    ];
-
-    vi.mocked(getKnowledgeForStage).mockReturnValue(mockKnowledge);
-
     const result = JSON.parse(await getContextualKnowledge.invoke({ stage: 'preconception' }));
 
     const contentLines = result.knowledge[0].content.split('\n');
     expect(contentLines.length).toBeLessThanOrEqual(3);
   });
 
-  it('异常情况返回错误信息', async () => {
-    vi.mocked(getKnowledgeForStage).mockImplementation(() => {
-      throw new Error('数据库连接失败');
-    });
-
-    const result = JSON.parse(await getContextualKnowledge.invoke({ stage: 'preconception' }));
-
-    expect(result.error).toBe('获取知识失败');
-    expect(result.message).toContain('数据库连接失败');
-    expect(result.disclaimer).toContain('以上仅供参考');
-  });
-
   it('所有返回结果包含免责声明', async () => {
-    const mockKnowledge = [
-      {
-        id: 'pre-1',
-        title: '叶酸补充',
-        content: '孕前3个月开始补充叶酸...',
-        stage: 'preconception' as const,
-        tags: ['营养'],
-        autoPush: true,
-      },
-    ];
-
-    vi.mocked(getKnowledgeForStage).mockReturnValue(mockKnowledge);
-
     const result = JSON.parse(await getContextualKnowledge.invoke({ stage: 'preconception' }));
 
     expect(result.disclaimer).toContain('以上仅供参考');

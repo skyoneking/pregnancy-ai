@@ -667,58 +667,17 @@ export const postpartumKnowledge: KnowledgeItem[] = [
 // ─── 知识库索引函数 ───────────────────────────────────────────────────────────
 
 /**
- * 根据阶段、孕周、产后天数获取知识
- */
-export function getKnowledgeForStage(
-  stage: Stage,
-  week?: number,
-  postpartumDay?: number
-): KnowledgeItem[] {
-  const result: KnowledgeItem[] = [];
-
-  if (stage === 'preconception') {
-    // 备孕期:返回所有自动推送的知识
-    return preconceptionKnowledge.filter((k) => k.autoPush);
-  }
-
-  if (stage === 'pregnancy' && week) {
-    // 孕期:返回指定孕周的知识
-    const weekKnowledge = pregnancyKnowledge[week];
-    if (weekKnowledge) {
-      result.push(weekKnowledge);
-    }
-  }
-
-  if (stage === 'postpartum' && postpartumDay) {
-    // 产后期:根据天数返回相关知识
-    const relevant = postpartumKnowledge.filter(
-      (k) => k.postpartumDay && k.postpartumDay <= postpartumDay && k.autoPush
-    );
-    // 按天数排序,返回最近的2-3条
-    result.push(
-      ...relevant
-        .sort((a, b) => (b.postpartumDay || 0) - (a.postpartumDay || 0))
-        .slice(0, 3)
-    );
-  }
-
-  return result;
-}
-
-/**
  * 按关键词搜索知识
  */
 export function searchKnowledgeByKeyword(keyword: string): KnowledgeItem[] {
   const lowerKeyword = keyword.toLowerCase();
 
-  // 搜索所有知识
   const allKnowledge: KnowledgeItem[] = [
     ...preconceptionKnowledge,
     ...Object.values(pregnancyKnowledge),
     ...postpartumKnowledge,
   ];
 
-  // 匹配标题或内容
   const results = allKnowledge.filter((k) => {
     const titleMatch = k.title.toLowerCase().includes(lowerKeyword);
     const contentMatch = k.content.toLowerCase().includes(lowerKeyword);
@@ -726,7 +685,6 @@ export function searchKnowledgeByKeyword(keyword: string): KnowledgeItem[] {
     return titleMatch || contentMatch || tagMatch;
   });
 
-  // 返回最多3条,按相关性排序(标题匹配优先)
   return results
     .sort((a, b) => {
       const aTitleMatch = a.title.toLowerCase().includes(lowerKeyword);
@@ -736,20 +694,6 @@ export function searchKnowledgeByKeyword(keyword: string): KnowledgeItem[] {
       return 0;
     })
     .slice(0, 3);
-}
-
-/**
- * 获取阶段的所有核心知识点(不包含每周内容)
- */
-export function getStageCoreKnowledge(stage: Stage): KnowledgeItem[] {
-  if (stage === 'preconception') {
-    return preconceptionKnowledge;
-  }
-  if (stage === 'postpartum') {
-    return postpartumKnowledge;
-  }
-  // 孕期返回每4周的知识点
-  return Object.values(pregnancyKnowledge).filter((k) => (k.week || 0) % 4 === 0);
 }
 
 // ─── 导出知识库 ───────────────────────────────────────────────────────────────

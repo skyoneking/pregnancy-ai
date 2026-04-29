@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/hooks/useAuth';
 import type { Stage, Role } from '@/app/_supabase/types';
+import { mainStageOptions } from '@/lib/pregnancy';
 
 type AuthMode = 'login' | 'register' | 'reset';
 type OnboardingStep = 'auth' | 'stage' | 'details';
@@ -505,47 +506,22 @@ export default function OnboardingPage() {
         <fieldset className="mb-6">
           <legend className="block text-sm font-medium text-gray-700 mb-3">当前阶段</legend>
           <div className="grid grid-cols-1 gap-3">
-            <button
-              type="button"
-              onClick={() => setStage('preconception')}
-              className={`rounded-xl border-2 p-4 text-left transition-all cursor-pointer ${
-                stage === 'preconception'
-                  ? 'border-pink-500 bg-pink-50 text-pink-700'
-                  : 'border-gray-200 text-gray-600 hover:border-pink-300'
-              }`}
-            >
-              <div className="text-2xl mb-1">💊</div>
-              <div className="font-medium">备孕期</div>
-              <div className="text-sm text-gray-500">准备怀孕，获取备孕知识</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStage('pregnancy')}
-              className={`rounded-xl border-2 p-4 text-left transition-all cursor-pointer ${
-                stage === 'pregnancy'
-                  ? 'border-pink-500 bg-pink-50 text-pink-700'
-                  : 'border-gray-200 text-gray-600 hover:border-pink-300'
-              }`}
-            >
-              <div className="text-2xl mb-1">🤰</div>
-              <div className="font-medium">孕期</div>
-              <div className="text-sm text-gray-500">已怀孕，追踪孕期变化</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStage('postpartum')}
-              className={`rounded-xl border-2 p-4 text-left transition-all cursor-pointer ${
-                stage === 'postpartum'
-                  ? 'border-pink-500 bg-pink-50 text-pink-700'
-                  : 'border-gray-200 text-gray-600 hover:border-pink-300'
-              }`}
-            >
-              <div className="text-2xl mb-1">👶</div>
-              <div className="font-medium">产后期</div>
-              <div className="text-sm text-gray-500">产后恢复，宝宝护理</div>
-            </button>
+            {mainStageOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setStage(opt.value)}
+                className={`rounded-xl border-2 p-4 text-left transition-all cursor-pointer ${
+                  stage === opt.value
+                    ? 'border-pink-500 bg-pink-50 text-pink-700'
+                    : 'border-gray-200 text-gray-600 hover:border-pink-300'
+                }`}
+              >
+                <div className="text-2xl mb-1">{opt.icon}</div>
+                <div className="font-medium">{opt.label}</div>
+                <div className="text-sm text-gray-500">{opt.description}</div>
+              </button>
+            ))}
           </div>
         </fieldset>
 
